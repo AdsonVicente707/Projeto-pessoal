@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meu Projeto Social</title>
+  
+  <!-- Fontes do Google -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome para Ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+  <!-- Sua Folha de Estilo -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <h1>Meu App</h1>
+    <nav>
+      <ul>
+        <li class="active"><i class="fas fa-home"></i> Início</li>
+        <li><i class="fas fa-hashtag"></i> Explorar</li>
+        <li><i class="fas fa-bell"></i> Notificações</li>
+        <li><i class="fas fa-envelope"></i> Mensagens</li>
+        <li><i class="fas fa-user"></i> Perfil</li>
+      </ul>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <section class="create-post">
+      <h3>Criar nova publicação</h3>
+      <textarea placeholder="O que está acontecendo?"></textarea>
+      <button>Postar</button>
+    </section>
+
+    <section class="timeline">
+      <!-- Exemplo de Post 1 -->
+      <div class="timeline-post">
+        <div class="post-header">
+          <img src="https://i.pravatar.cc/40?img=1" alt="Avatar" class="avatar">
+          <div class="author-info">
+            <strong>Ana Silva</strong>
+            <small>2 horas atrás</small>
+          </div>
+        </div>
+        <img src="https://images.unsplash.com/photo-1559181567-c3190ca9959b?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=600" alt="Post Image">
+        <div class="post-content">
+          <p>Adorei o dia no parque hoje! Um ótimo lugar para relaxar e ler um livro.</p>
+        </div>
+        <div class="post-actions">
+          <div><i class="far fa-heart"></i> Curtir</div>
+          <div><i class="far fa-comment"></i> Comentar</div>
+          <div><i class="fas fa-share"></i> Compartilhar</div>
+        </div>
+      </div>
+
+      <!-- Exemplo de Post 2 -->
+      <div class="timeline-post">
+        <div class="post-header">
+          <img src="https://i.pravatar.cc/40?img=2" alt="Avatar" class="avatar">
+          <div class="author-info">
+            <strong>Carlos Souza</strong>
+            <small>5 horas atrás</small>
+          </div>
+        </div>
+        <div class="post-content">
+          <p>Experimentando novas receitas na cozinha. O resultado ficou incrível! 👨‍🍳 #culinaria</p>
+        </div>
+        <div class="post-actions">
+          <div><i class="far fa-heart"></i> Curtir</div>
+          <div><i class="far fa-comment"></i> Comentar</div>
+          <div><i class="fas fa-share"></i> Compartilhar</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
