@@ -24,9 +24,12 @@
       <ul>
         <li class="active"><i class="fas fa-home"></i> Início</li>
         <li><i class="fas fa-hashtag"></i> Explorar</li>
+        <li><i class="fas fa-users"></i> Espaços</li>
+        <li><i class="fas fa-envelope-open-text"></i> Convites</li>
         <li><i class="fas fa-bell"></i> Notificações<span class="notification-dot hidden"></span></li>
         <li><i class="fas fa-envelope"></i> Mensagens</li>
         <li><i class="fas fa-user"></i> Perfil</li>
+        <li id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</li>
       </ul>
     </nav>
   </aside>
@@ -66,8 +69,87 @@
       </div>
     </section>
 
+    <!-- Seção da Página de Espaços (escondida por padrão) -->
+    <section class="spaces-page" id="spaces-page">
+      <h2>Meus Espaços</h2>
+      <div class="create-space-container">
+        <input type="text" id="space-name-input" placeholder="Nome do novo espaço colaborativo">
+        <button id="create-space-button">Criar Espaço</button>
+      </div>
+      <div class="spaces-list" id="spaces-list">
+        <!-- Lista de espaços será renderizada aqui -->
+      </div>
+    </section>
+
+    <!-- Seção da Página de Detalhes de um Espaço (escondida por padrão) -->
+    <section class="space-detail-page" id="space-detail-page">
+      <button id="back-to-spaces-button">&larr; Voltar para Espaços</button>
+      <h2 id="space-detail-name"></h2>
+      <div id="invite-member-container" style="display: none;">
+        <h3>Convidar Membro</h3>
+        <input type="email" id="invite-email-input" placeholder="Email do usuário">
+        <button id="send-invite-button">Enviar Convite</button>
+      </div>
+      <h3>Membros</h3>
+      <div id="space-members-list"></div>
+
+      <div class="space-tabs">
+        <button class="tab-button active" data-tab="mural">Mural de Fotos</button>
+        <button class="tab-button" data-tab="chat">Chat</button>
+        <button class="tab-button" data-tab="timeline">Linha do Tempo</button>
+        <button class="tab-button" data-tab="notes">Anotações</button>
+        <button class="tab-button" data-tab="audios">Mural de Áudio</button>
+      </div>
+      <div class="tab-content" id="mural-content">
+        <input type="file" id="photo-upload-input" accept="image/*" style="display: none;">
+        <button id="add-space-photo-button">Adicionar Foto ao Mural</button>
+        <div class="space-photo-grid" id="space-photo-grid"></div>
+      </div>
+      <div class="tab-content" id="chat-content" style="display: none;">
+        <div class="chat-window" id="chat-window">
+          <!-- Mensagens do chat serão inseridas aqui -->
+        </div>
+        <form class="chat-input-form" id="chat-input-form">
+          <input type="text" id="chat-message-input" placeholder="Digite sua mensagem..." autocomplete="off">
+          <button type="submit">Enviar</button>
+        </form>
+      </div>
+      <div class="tab-content" id="timeline-content" style="display: none;">
+        <div class="create-post space-create-post">
+          <textarea id="space-post-text" placeholder="Compartilhe um momento..."></textarea>
+          <input type="file" id="space-post-image-upload" accept="image/*" style="display: none;">
+          <div class="create-post-actions">
+            <button id="add-space-post-photo-button"><i class="fas fa-camera"></i> Adicionar Foto</button>
+            <button id="create-space-post-button">Postar no Espaço</button>
+          </div>
+        </div>
+        <div class="space-timeline-feed" id="space-timeline-feed"></div>
+      </div>
+      <div class="tab-content" id="notes-content" style="display: none;">
+        <div class="create-note-container">
+          <textarea id="note-text-input" placeholder="Escreva uma nova anotação..."></textarea>
+          <button id="create-note-button">Salvar Anotação</button>
+        </div>
+        <div class="notes-list" id="notes-list"></div>
+      </div>
+      <div class="tab-content" id="audios-content" style="display: none;">
+        <div class="audio-recorder-container">
+          <button id="record-audio-button">Gravar Áudio</button>
+          <p id="recording-status"></p>
+        </div>
+        <div class="audio-list" id="audio-list"></div>
+      </div>
+    </section>
+
+    <!-- Seção da Página de Convites (escondida por padrão) -->
+    <section class="invitations-page" id="invitations-page">
+      <h2>Meus Convites Pendentes</h2>
+      <div id="invitations-list"></div>
+    </section>
+
   </main>
 
   <script src="script.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </body>
 </html>

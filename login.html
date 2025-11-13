@@ -3,34 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Cápsula Familiar</title>
-    <!-- Google Fonts (Nunito) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="login.css">
+    <title>Login - Meu Projeto Social</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="login.css"> <!-- Estilos específicos para a página de login -->
 </head>
 <body>
-    <div class="login-container">
-        <h1>Cápsula Familiar</h1>
-        <p>Seu espaço privado para memórias em família.</p>
-        <form id="login-form" action="index.html" novalidate>
-            <div id="error-message" class="error-message"></div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
+    <div class="auth-container">
+        <div class="auth-box">
+            <!-- Formulário de Login -->
+            <div id="login-view">
+                <h2>Entrar</h2>
+                <form id="login-form">
+                    <div class="input-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password">Senha</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="auth-button">Login</button>
+                </form>
+                <p class="error-message" id="login-error-message"></p>
+                <p class="toggle-view">
+                    Não tem uma conta? <a href="#" id="show-register">Cadastre-se</a>
+                </p>
             </div>
-            <div class="form-group">
-                <label for="password">Senha</label>
-                <input type="password" id="password" name="password" required>
+
+            <!-- Formulário de Cadastro -->
+            <div id="register-view" style="display: none;">
+                <h2>Cadastrar</h2>
+                <form id="register-form">
+                    <div class="input-group">
+                        <label for="register-name">Nome</label>
+                        <input type="text" id="register-name" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password">Senha</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <button type="submit" class="auth-button">Cadastrar</button>
+                </form>
+                <p class="error-message" id="register-error-message"></p>
+                <p class="toggle-view">
+                    Já tem uma conta? <a href="#" id="show-login">Faça login</a>
+                </p>
             </div>
-            <button type="submit">Entrar</button>
-        </form>
-        <div class="links">
-            <a href="#">Esqueceu sua senha?</a> | 
-            <a href="register.html">Criar uma conta</a>
         </div>
     </div>
+
     <script src="login.js"></script>
 </body>
 </html>

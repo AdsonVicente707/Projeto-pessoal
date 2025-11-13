@@ -378,3 +378,387 @@ body {
   transform: scale(1.03);
   box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
+
+/* --- Estilos da Página de Espaços --- */
+.spaces-page {
+  display: none; /* Escondido por padrão */
+}
+
+.spaces-page h2 {
+  font-size: 1.8em;
+  color: #1F2937;
+}
+
+.create-space-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.create-space-container input {
+  flex-grow: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.create-space-container button {
+  padding: 0 25px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.spaces-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.space-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.space-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.space-card h3 {
+  margin: 0;
+  color: #1F2937;
+}
+
+/* --- Estilos da Página de Detalhes do Espaço --- */
+.space-detail-page {
+  display: none;
+}
+
+.space-detail-page h2 {
+  font-size: 2em;
+  color: #1F2937;
+  margin-bottom: 20px;
+}
+
+.space-detail-page h3 {
+  margin-top: 30px;
+  border-bottom: 1px solid #e6ecf0;
+  padding-bottom: 10px;
+}
+
+#back-to-spaces-button {
+  margin-bottom: 20px;
+  background: none;
+  border: 1px solid #ccc;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#invite-member-container {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background-color: #f7faff;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+#invite-member-container input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* --- Estilos da Página de Convites --- */
+.invitations-page {
+  display: none;
+}
+
+.invitation-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.invitation-card button {
+  margin-left: 10px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+/* --- Estilos das Abas do Espaço --- */
+.space-tabs {
+  margin-top: 30px;
+  border-bottom: 1px solid #e6ecf0;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1em;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+  border-bottom-color: #3B82F6;
+  color: #3B82F6;
+  font-weight: 600;
+}
+
+.tab-content {
+  padding-top: 20px;
+}
+
+#add-space-photo-button {
+  display: block;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.space-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.space-photo-grid img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* --- Estilos do Chat do Espaço --- */
+.chat-window {
+  height: 400px;
+  border: 1px solid #e6ecf0;
+  border-radius: 8px;
+  padding: 15px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-message {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 18px;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.chat-message strong {
+  display: block;
+  font-size: 0.8em;
+  margin-bottom: 4px;
+  color: #3B82F6;
+}
+
+.chat-message.my-message {
+  background-color: #3B82F6;
+  color: white;
+  align-self: flex-end;
+}
+
+.chat-message.my-message strong {
+  color: #E0EFFF;
+}
+
+.chat-message.other-message {
+  background-color: #E5E7EB;
+  color: #1F2937;
+  align-self: flex-start;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-form input {
+  flex-grow: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.chat-input-form button {
+  padding: 0 25px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* --- Estilos da Linha do Tempo do Espaço --- */
+.space-create-post {
+  margin-top: 20px;
+}
+
+.space-timeline-feed .timeline-post {
+  /* Os posts da timeline do espaço usarão os mesmos estilos dos posts da timeline principal */
+}
+
+/* --- Estilos das Anotações --- */
+.create-note-container {
+  margin-bottom: 20px;
+}
+
+.create-note-container textarea {
+  width: 100%;
+  height: 100px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.create-note-container button {
+  padding: 10px 20px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#record-audio-button.recording {
+  background-color: #ef4444; /* Vermelho para indicar gravação */
+  color: white;
+}
+
+.notes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.note-card {
+  background-color: #fffae1;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-left: 5px solid #facc15;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.note-card p {
+  white-space: pre-wrap; /* Preserva quebras de linha e espaços */
+  margin: 0;
+  flex-grow: 1;
+}
+
+.note-card button {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.8em;
+  border-radius: 4px;
+  cursor: pointer;
+  align-self: flex-end;
+}
+
+/* --- Estilos das Anotações --- */
+.create-note-container {
+  margin-bottom: 20px;
+}
+
+.create-note-container textarea {
+  width: 100%;
+  height: 100px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.create-note-container button {
+  padding: 10px 20px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notes-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.note-card {
+  background-color: #fffae1;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  border-left: 5px solid #facc15;
+}
+
+.note-card p {
+  white-space: pre-wrap; /* Preserva quebras de linha e espaços */
+  margin: 0;
+}
+
+/* --- Estilos do Mural de Áudio --- */
+.audio-recorder-container {
+  margin-bottom: 20px;
+}
+
+#record-audio-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#record-audio-button.recording {
+  background-color: #ef4444; /* Vermelho para indicar gravação */
+  color: white;
+}
+
+.audio-list audio {
+  width: 100%;
+  margin-top: 10px;
+}
+}
+}

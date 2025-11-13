@@ -1,96 +1,79 @@
 body {
-    font-family: 'Nunito', sans-serif;
-    margin: 0;
-    background-color: #f0f2f5;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    background-color: #F9F9F9;
 }
 
-.login-container {
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.auth-box {
     background-color: #fff;
     padding: 40px;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     width: 100%;
     max-width: 400px;
+}
+
+.auth-box h2 {
     text-align: center;
+    margin-bottom: 25px;
+    color: #1F2937;
 }
 
-.login-container h1 {
-    font-size: 2em;
-    color: #333;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.login-container p {
-    color: #666;
-    margin-bottom: 30px;
-}
-
-.form-group {
+.input-group {
     margin-bottom: 20px;
-    text-align: left;
 }
 
-.form-group label {
+.input-group label {
     display: block;
     margin-bottom: 5px;
-    font-weight: bold;
-    color: #555;
+    font-weight: 600;
+    color: #4A5568;
 }
 
-.form-group input {
+.input-group input {
     width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
+    padding: 10px;
+    border: 1px solid #CBD5E0;
     border-radius: 4px;
-    box-sizing: border-box; /* Garante que o padding não afete a largura total */
+    box-sizing: border-box;
 }
 
-button {
+.auth-button {
     width: 100%;
     padding: 12px;
-    background-color: #007bff;
+    background-color: #3B82F6;
     color: white;
     border: none;
     border-radius: 4px;
-    font-size: 1.1em;
+    font-size: 1em;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease;
 }
 
-button:hover {
-    background-color: #0056b3;
-}
-
-.links {
-    margin-top: 20px;
-    font-size: 0.9em;
-}
-
-.links a {
-    color: #007bff;
-    text-decoration: none;
-    font-size: 0.9em;
-}
-.links span {
-    color: #666;
-}
-
-.links a:hover {
-    text-decoration: underline;
+.auth-button:hover {
+    background-color: #2563EB;
 }
 
 .error-message {
-    color: #d93025; /* Um tom de vermelho para erros */
-    background-color: #f8d7da;
-    border: 1px solid #f5c6cb;
+    color: #E53E3E;
+    background-color: #FED7D7;
     padding: 10px;
     border-radius: 4px;
-    margin-bottom: 20px;
-    display: none; /* Escondido por padrão */
     text-align: center;
+    margin-top: 15px;
+    display: none; /* Escondido por padrão */
+}
+
+.toggle-view {
+    text-align: center;
+    margin-top: 20px;
 }
