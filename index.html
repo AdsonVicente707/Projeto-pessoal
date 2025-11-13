@@ -24,7 +24,7 @@
       <ul>
         <li class="active"><i class="fas fa-home"></i> Início</li>
         <li><i class="fas fa-hashtag"></i> Explorar</li>
-        <li><i class="fas fa-bell"></i> Notificações</li>
+        <li><i class="fas fa-bell"></i> Notificações<span class="notification-dot hidden"></span></li>
         <li><i class="fas fa-envelope"></i> Mensagens</li>
         <li><i class="fas fa-user"></i> Perfil</li>
       </ul>
@@ -34,50 +34,38 @@
   <main class="main-content">
     <section class="create-post">
       <h3>Criar nova publicação</h3>
-      <textarea placeholder="O que está acontecendo?"></textarea>
-      <button>Postar</button>
-    </section>
-
-    <section class="timeline">
-      <!-- Exemplo de Post 1 -->
-      <div class="timeline-post">
-        <div class="post-header">
-          <img src="https://i.pravatar.cc/40?img=1" alt="Avatar" class="avatar">
-          <div class="author-info">
-            <strong>Ana Silva</strong>
-            <small>2 horas atrás</small>
-          </div>
-        </div>
-        <img src="https://images.unsplash.com/photo-1559181567-c3190ca9959b?ixlib=rb-4.0.3&q=85&fm=jpg&crop=entropy&cs=srgb&w=600" alt="Post Image">
-        <div class="post-content">
-          <p>Adorei o dia no parque hoje! Um ótimo lugar para relaxar e ler um livro.</p>
-        </div>
-        <div class="post-actions">
-          <div><i class="far fa-heart"></i> Curtir</div>
-          <div><i class="far fa-comment"></i> Comentar</div>
-          <div><i class="fas fa-share"></i> Compartilhar</div>
-        </div>
-      </div>
-
-      <!-- Exemplo de Post 2 -->
-      <div class="timeline-post">
-        <div class="post-header">
-          <img src="https://i.pravatar.cc/40?img=2" alt="Avatar" class="avatar">
-          <div class="author-info">
-            <strong>Carlos Souza</strong>
-            <small>5 horas atrás</small>
-          </div>
-        </div>
-        <div class="post-content">
-          <p>Experimentando novas receitas na cozinha. O resultado ficou incrível! 👨‍🍳 #culinaria</p>
-        </div>
-        <div class="post-actions">
-          <div><i class="far fa-heart"></i> Curtir</div>
-          <div><i class="far fa-comment"></i> Comentar</div>
-          <div><i class="fas fa-share"></i> Compartilhar</div>
-        </div>
+      <textarea id="post-text" placeholder="O que está acontecendo?"></textarea>
+      <input type="file" id="image-upload" accept="image/*" style="display: none;">
+      <div class="create-post-actions">
+        <button id="add-photo-button"><i class="fas fa-camera"></i> Adicionar Foto</button>
+        <button id="post-button">Postar</button>
       </div>
     </section>
+
+    <section class="timeline" id="timeline-feed">
+      <!-- Os posts serão renderizados aqui pelo JavaScript -->
+    </section>
+
+    <!-- Seção da Página de Perfil (escondida por padrão) -->
+    <section class="profile-page" id="profile-page">
+      <div class="profile-header-section">
+        <img src="" alt="Avatar do Perfil" class="avatar" id="profile-avatar">
+        <h2 id="profile-name"></h2>
+      </div>
+      <h3 class="profile-posts-title" id="profile-posts-title"></h3>
+      <div class="profile-posts-feed" id="profile-posts-feed">
+        <!-- Posts do usuário serão inseridos aqui pelo JS -->
+      </div>
+    </section>
+
+    <!-- Seção da Página Explorar (escondida por padrão) -->
+    <section class="explore-page" id="explore-page">
+      <h2>Explorar</h2>
+      <div class="explore-grid" id="explore-grid">
+        <!-- Imagens serão inseridas aqui pelo JS -->
+      </div>
+    </section>
+
   </main>
 
   <script src="script.js"></script>
