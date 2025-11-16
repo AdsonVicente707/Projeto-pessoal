@@ -1,36 +1,47 @@
 const Post = require('../models/postModel');
 const path = require('path');
+const asyncHandler = require('express-async-handler');
 
 /**
  * @desc    Buscar todos os posts
  * @route   GET /api/posts
  * @access  Private
  */
-const getPosts = async (req, res) => {
+const getPosts = asyncHandler(async (req, res) => {
   const posts = await Post.find({})
     .populate('author', 'name')
     .sort({ createdAt: -1 });
   res.json(posts);
-};
+});
 
 /**
  * @desc    Criar um novo post
  * @route   POST /api/posts
  * @access  Private
  */
-const createPost = async (req, res) => {
+const createPost = asyncHandler(async (req, res) => {
   const { text } = req.body;
   let imageUrl = null;
 
   if (req.files && req.files.photo) {
     const photo = req.files.photo;
     const uploadPath = path.join(__dirname, '..', 'public', 'uploads', `${Date.now()}_${photo.name}`);
-    await photo.mv(uploadPath);
-    imageUrl = `/uploads/${path.basename(uploadPath)}`;
+    try {
+      await photo.mv(uploadPath);
+      // Constrói a URL completa da imagem
+      const baseUrl = `${req.protocol}://${req.get('host')}`; // ex: http://localhost:5000
+      const imagePath = `/uploads/${path.basename(uploadPath)}`;
+      imageUrl = `${baseUrl}${imagePath}`;
+    } catch (error) {
+      console.error(error);
+      res.status(500);
+      throw new Error('Falha no upload da imagem.');
+    }
   }
 
   if (!text && !imageUrl) {
-    return res.status(400).send('O post precisa de texto ou imagem.');
+    res.status(400);
+    throw new Error('O post precisa de texto ou imagem.');
   }
 
   const post = await Post.create({
@@ -41,18 +52,19 @@ const createPost = async (req, res) => {
 
   const createdPost = await Post.findById(post._id).populate('author', 'name');
   res.status(201).json(createdPost);
-};
+});
 
 /**
  * @desc    Curtir/Descurtir um post
  * @route   PUT /api/posts/:id/like
  * @access  Private
  */
-const likePost = async (req, res) => {
+const likePost = asyncHandler(async (req, res) => {
   const post = await Post.findById(req.params.id);
 
   if (!post) {
-    return res.status(404).send('Post não encontrado');
+    res.status(404);
+    throw new Error('Post não encontrado.');
   }
 
   // Verifica se o post já foi curtido pelo usuário
@@ -73,23 +85,25 @@ const likePost = async (req, res) => {
   await post.save();
   const updatedPost = await Post.findById(post._id).populate('author', 'name');
   res.json(updatedPost);
-};
+});
 
 /**
  * @desc    Comentar em um post
  * @route   POST /api/posts/:id/comments
  * @access  Private
  */
-const createPostComment = async (req, res) => {
+const createPostComment = asyncHandler(async (req, res) => {
   const { text } = req.body;
   const post = await Post.findById(req.params.id);
 
   if (!post) {
-    return res.status(404).send('Post não encontrado');
+    res.status(404);
+    throw new Error('Post não encontrado.');
   }
 
   if (!text) {
-    return res.status(400).send('O comentário não pode estar vazio');
+    res.status(400);
+    throw new Error('O comentário não pode estar vazio.');
   }
 
   const comment = {
@@ -99,7 +113,7 @@ const createPostComment = async (req, res) => {
 
   post.comments.push(comment);
   await post.save();
-  res.status(201).json({ message: 'Comentário adicionado' });
-};
+  res.status(201).json({ message: 'Comentário adicionado.' });
+});
 
 module.exports = { getPosts, createPost, likePost, createPostComment };

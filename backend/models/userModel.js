@@ -16,11 +16,27 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+  avatar: {
+    type: String,
+    default: 'https://i.pravatar.cc/150'
+  },
+  // Lista de IDs de usuários com quem este usuário está conectado (status 'accepted')
+  connections: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }]
   },
   {
     timestamps: true, // Cria campos createdAt e updatedAt automaticamente
   }
 );
+
+// Sobrescreve o método toJSON para remover a senha do objeto retornado
+userSchema.methods.toJSON = function() {
+  const user = this.toObject();
+  delete user.password;
+  return user;
+};
 
 // Método para comparar a senha digitada com a senha criptografada no banco
 userSchema.methods.matchPassword = async function (enteredPassword) {

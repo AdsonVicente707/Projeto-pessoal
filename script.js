@@ -14,7 +14,9 @@ document.addEventListener('DOMContentLoaded', function() {
   const profilePostsTitle = document.getElementById('profile-posts-title');
   const profilePostsFeed = document.getElementById('profile-posts-feed');
   const explorePage = document.getElementById('explore-page');
-  const exploreGrid = document.getElementById('explore-grid');
+  const userSearchInput = document.getElementById('user-search-input');
+  const userSearchButton = document.getElementById('user-search-button');
+  const userSearchResults = document.getElementById('user-search-results');
   const spacesPage = document.getElementById('spaces-page');
   const createSpaceButton = document.getElementById('create-space-button');
   const spaceNameInput = document.getElementById('space-name-input');
@@ -26,7 +28,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const sendInviteButton = document.getElementById('send-invite-button');
   const spaceMembersList = document.getElementById('space-members-list');
   const invitationsPage = document.getElementById('invitations-page');
-  const invitationsList = document.getElementById('invitations-list');
+  const spaceInvitationsList = document.getElementById('space-invitations-list');
+  const connectionRequestsList = document.getElementById('connection-requests-list');
   const addSpacePhotoButton = document.getElementById('add-space-photo-button');
   const photoUploadInput = document.getElementById('photo-upload-input');
   const spacePhotoGrid = document.getElementById('space-photo-grid');
@@ -264,17 +267,150 @@ document.addEventListener('DOMContentLoaded', function() {
     invitationsPage.style.display = 'none';
     explorePage.style.display = 'block';
 
-    // Popula a grade de explorar apenas se estiver vazia
-    if (exploreGrid.innerHTML === '') {
-      for (let i = 0; i < 21; i++) {
-        const img = document.createElement('img');
-        img.src = `https://picsum.photos/300/300?random=${i}`;
-        exploreGrid.appendChild(img);
-      }
+    // Limpa resultados anteriores e adiciona os listeners de evento
+    userSearchResults.innerHTML = '<p>Use a busca acima para encontrar pessoas.</p>';
+    userSearchButton.onclick = handleUserSearch;
+    userSearchInput.onkeyup = (e) => {
+      if (e.key === 'Enter') handleUserSearch();
+    };
+  }
+
+  // Função para buscar usuários
+  async function handleUserSearch() {
+    const query = userSearchInput.value.trim();
+    if (!query) return;
+
+    try {
+      const res = await fetch(`${API_URL}/connections/search?name=${query}`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` },
+      });
+      if (!res.ok) throw new Error('Falha na busca');
+      const users = await res.json();
+      renderSearchResults(users);
+    } catch (error) {
+      console.error('Erro ao buscar usuários:', error);
+      userSearchResults.innerHTML = '<p>Ocorreu um erro ao buscar usuários.</p>';
     }
   }
 
-  // Função para mostrar a página de espaços
+  // Função para renderizar os resultados da busca
+  function renderSearchResults(users) {
+    userSearchResults.innerHTML = '';
+    if (users.length === 0) {
+      userSearchResults.innerHTML = '<p>Nenhum usuário encontrado.</p>';
+      return;
+    }
+
+    users.forEach(user => {
+      const userCard = document.createElement('div');
+      userCard.classList.add('user-card');
+
+      let buttonHtml = '';
+      switch (user.status) {
+        case 'connected':
+          buttonHtml = '<button class="add-user-button" disabled>Conectado</button>';
+          break;
+        case 'pending_sent':
+          buttonHtml = '<button class="add-user-button" disabled>Pedido Enviado</button>';
+          break;
+        case 'pending_received':
+          // O usuário deve ir para a página de convites para aceitar
+          buttonHtml = '<button class="add-user-button" disabled>Responder</button>';
+          break;
+        default: // 'none'
+          buttonHtml = `<button class="add-user-button" data-userid="${user._id}">Adicionar</button>`;
+      }
+
+      userCard.innerHTML = `
+        <img src="${user.avatar}" alt="Avatar" class="avatar">
+        <div>
+          <strong>${user.name}</strong>
+          ${buttonHtml}
+        </div>
+      `;
+      userSearchResults.appendChild(userCard);
+    });
+  }
+
+  // Função para enviar pedido de conexão (usando delegação de evento)
+  async function handleSendConnectionRequest(event) {
+    if (!event.target.matches('.add-user-button')) return;
+
+    const button = event.target;
+    const recipientId = button.dataset.userid;
+
+    try {
+      const res = await fetch(`${API_URL}/connections/request/${recipientId}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${userInfo.token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || 'Falha ao enviar pedido');
+
+      // Feedback visual para o usuário
+      button.textContent = 'Pedido Enviado';
+      button.disabled = true;
+    } catch (error) {
+      console.error('Erro ao enviar pedido:', error);
+      alert(`Erro: ${error.message}`);
+    }
+  }
+
+  // Função para responder a um pedido de conexão
+  async function handleRespondToConnectionRequest(event) {
+    if (!event.target.matches('.accept-request-button, .decline-request-button')) return;
+
+    const button = event.target;
+    const requestId = button.dataset.requestid;
+    const response = button.classList.contains('accept-request-button') ? 'accept' : 'decline';
+
+    try {
+      const res = await fetch(`${API_URL}/connections/${requestId}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userInfo.token}`
+        },
+        body: JSON.stringify({ response })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || 'Falha ao responder ao pedido');
+
+      // Atualiza a visualização para remover o card do pedido respondido
+      fetchAndRenderConnectionRequests();
+
+    } catch (error) {
+      console.error('Erro ao responder ao pedido:', error);
+      alert(`Erro: ${error.message}`);
+    }
+  }
+
+  // Função para lidar com o clique no botão de curtir (usando delegação de evento)
+  async function handleLike(event) {
+    const likeButton = event.target.closest('.like-button');
+    if (!likeButton) return;
+    
+    const postElement = likeButton.closest('.timeline-post');
+    const postId = postElement.dataset.postId;
+
+    try {
+      const res = await fetch(`${API_URL}/posts/${postId}/like`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${userInfo.token}` },
+      });
+
+      if (!res.ok) throw new Error('Falha ao curtir o post');
+
+      // Atualiza a timeline para refletir a mudança
+      fetchAndRenderTimeline();
+
+    } catch (error) {
+      console.error('Erro ao curtir:', error);
+    }
+  }
+
+    // Função para mostrar a página de espaços
   function showSpacesView() {
     mainContent.classList.remove('profile-view');
     profilePage.style.display = 'none';
@@ -705,20 +841,21 @@ document.addEventListener('DOMContentLoaded', function() {
     explorePage.style.display = 'none';
     invitationsPage.style.display = 'block';
 
-    fetchAndRenderInvitations();
+    fetchAndRenderSpaceInvitations();
+    fetchAndRenderConnectionRequests();
   }
 
-  // Função para buscar e renderizar convites
-  async function fetchAndRenderInvitations() {
+  // Função para buscar e renderizar convites de ESPAÇOS
+  async function fetchAndRenderSpaceInvitations() {
     try {
       const res = await fetch(`${API_URL}/invitations/my`, {
         headers: { 'Authorization': `Bearer ${userInfo.token}` }
       });
       const myInvitations = await res.json();
 
-      invitationsList.innerHTML = '';
+      spaceInvitationsList.innerHTML = '';
       if (myInvitations.length === 0) {
-        invitationsList.innerHTML = '<p>Você não tem nenhum convite pendente.</p>';
+        spaceInvitationsList.innerHTML = '<p>Nenhum convite para espaços.</p>';
       } else {
         myInvitations.forEach(inv => {
           const card = document.createElement('div');
@@ -726,24 +863,59 @@ document.addEventListener('DOMContentLoaded', function() {
           card.innerHTML = `
             <p><strong>${inv.from.name}</strong> convidou você para o espaço <strong>${inv.space.name}</strong>.</p>
             <div>
-              <button onclick="handleAcceptInvite('${inv._id}')">Aceitar</button>
+              <button onclick="handleAcceptSpaceInvite('${inv._id}')">Aceitar</button>
             </div>
           `;
-          invitationsList.appendChild(card);
+          spaceInvitationsList.appendChild(card);
         });
       }
     } catch (error) {
       console.error('Erro ao buscar convites:', error);
+      spaceInvitationsList.innerHTML = '<p>Erro ao carregar convites para espaços.</p>';
     }
   }
 
-  // Função para aceitar um convite (exposta globalmente para o onclick)
-  window.handleAcceptInvite = async (invitationId) => {
+  // Função para buscar e renderizar pedidos de CONEXÃO
+  async function fetchAndRenderConnectionRequests() {
+    try {
+      const res = await fetch(`${API_URL}/connections/pending`, {
+        headers: { 'Authorization': `Bearer ${userInfo.token}` }
+      });
+      const pendingRequests = await res.json();
+
+      connectionRequestsList.innerHTML = '';
+      if (pendingRequests.length === 0) {
+        connectionRequestsList.innerHTML = '<p>Nenhum pedido de conexão pendente.</p>';
+      } else {
+        pendingRequests.forEach(req => {
+          const card = document.createElement('div');
+          card.classList.add('connection-request-card');
+          card.innerHTML = `
+            <div class="user-info">
+              <img src="${req.requester.avatar}" alt="Avatar" class="avatar">
+              <strong>${req.requester.name}</strong> quer se conectar com você.
+            </div>
+            <div>
+              <button class="accept-request-button" data-requestid="${req._id}">Aceitar</button>
+              <button class="decline-request-button" data-requestid="${req._id}">Recusar</button>
+            </div>
+          `;
+          connectionRequestsList.appendChild(card);
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao buscar pedidos de conexão:', error);
+      connectionRequestsList.innerHTML = '<p>Erro ao carregar pedidos de conexão.</p>';
+    }
+  }
+
+  // Função para aceitar um convite de espaço (exposta globalmente para o onclick)
+  window.handleAcceptSpaceInvite = async (invitationId) => {
     await fetch(`${API_URL}/invitations/${invitationId}/accept`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${userInfo.token}` }
     });
-    fetchAndRenderInvitations(); // Atualiza a lista de convites
+    fetchAndRenderSpaceInvitations(); // Atualiza a lista de convites
   };
 
   // Função para adicionar eventos de clique aos cabeçalhos dos posts
@@ -769,35 +941,6 @@ document.addEventListener('DOMContentLoaded', function() {
   // Adiciona o evento de clique ao botão de criar espaço
   if (createSpaceButton) {
     createSpaceButton.addEventListener('click', handleCreateSpace);
-  }
-
-  // Adiciona evento ao botão de voltar
-  if (backToSpacesButton) {
-    backToSpacesButton.addEventListener('click', showSpacesView);
-  }
-
-  // Função para lidar com o clique no botão de curtir (usando delegação de evento)
-  async function handleLike(event) {
-    const likeButton = event.target.closest('.like-button');
-    if (!likeButton) return;
-    
-    const postElement = likeButton.closest('.timeline-post');
-    const postId = postElement.dataset.postId;
-
-    try {
-      const res = await fetch(`${API_URL}/posts/${postId}/like`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${userInfo.token}` },
-      });
-
-      if (!res.ok) throw new Error('Falha ao curtir o post');
-
-      // Atualiza a timeline para refletir a mudança
-      fetchAndRenderTimeline();
-
-    } catch (error) {
-      console.error('Erro ao curtir:', error);
-    }
   }
 
   // Função para lidar com o clique no botão de comentar
@@ -870,10 +1013,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
+  // Adiciona evento ao botão de voltar
+  if (backToSpacesButton) {
+    backToSpacesButton.addEventListener('click', showSpacesView);
+  }
+
   // Adiciona um único listener de clique no container principal para lidar com as curtidas
   mainContent.addEventListener('click', handleLike);
   mainContent.addEventListener('click', handleComment);
   mainContent.addEventListener('click', handleSubmitComment);
+  mainContent.addEventListener('click', handleSendConnectionRequest);
+  mainContent.addEventListener('click', handleRespondToConnectionRequest);
 
   // Função para buscar e renderizar a timeline principal
   async function fetchAndRenderTimeline() {

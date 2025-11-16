@@ -9,7 +9,9 @@ const postSchema = mongoose.Schema(
     },
     text: {
       type: String,
-      required: true,
+      // O campo de texto não é mais estritamente obrigatório,
+      // pois a validação no controller garante que haja texto OU imagem.
+      required: false, 
     },
     imageUrl: {
       type: String,
@@ -23,23 +25,13 @@ const postSchema = mongoose.Schema(
     comments: [
       {
         text: { type: String, required: true },
-        author: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-          ref: 'User',
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
+        author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        createdAt: { type: Date, default: Date.now },
       },
     ],
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 const Post = mongoose.model('Post', postSchema);
-
 module.exports = Post;

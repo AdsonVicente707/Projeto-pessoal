@@ -5,7 +5,8 @@ const {
   createSpacePost,
 } = require('../controllers/spacePostController');
 const { protect } = require('../middleware/authMiddleware');
+const ensureUploadsDir = require('../middleware/ensureUploadsDir.js');
 
-router.route('/:spaceId').get(protect, getSpacePosts).post(protect, createSpacePost);
+router.route('/:spaceId').get(protect, getSpacePosts).post(protect, ensureUploadsDir, createSpacePost);
 
 module.exports = router;

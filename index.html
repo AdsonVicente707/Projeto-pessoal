@@ -63,9 +63,13 @@
 
     <!-- Seção da Página Explorar (escondida por padrão) -->
     <section class="explore-page" id="explore-page">
-      <h2>Explorar</h2>
-      <div class="explore-grid" id="explore-grid">
-        <!-- Imagens serão inseridas aqui pelo JS -->
+      <h2>Encontrar Pessoas</h2>
+      <div class="user-search-container">
+        <input type="text" id="user-search-input" placeholder="Digite o nome de alguém...">
+        <button id="user-search-button"><i class="fas fa-search"></i> Buscar</button>
+      </div>
+      <div class="user-search-results" id="user-search-results">
+        <!-- Resultados da busca de usuários serão inseridos aqui -->
       </div>
     </section>
 
@@ -144,7 +148,14 @@
     <!-- Seção da Página de Convites (escondida por padrão) -->
     <section class="invitations-page" id="invitations-page">
       <h2>Meus Convites Pendentes</h2>
-      <div id="invitations-list"></div>
+      
+      <h3>Convites para Espaços</h3>
+      <div id="space-invitations-list">
+        <!-- Convites de espaços serão renderizados aqui -->
+      </div>
+
+      <h3 style="margin-top: 30px;">Pedidos de Conexão</h3>
+      <div id="connection-requests-list"></div>
     </section>
 
   </main>

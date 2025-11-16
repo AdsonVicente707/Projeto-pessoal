@@ -379,6 +379,59 @@ body {
   box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
+/* --- Estilos da Busca de Usuários na Página Explorar --- */
+.user-search-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.user-search-container input {
+  flex-grow: 1;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+}
+
+.user-search-container button {
+  padding: 0 25px;
+  background-color: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.user-search-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.user-card {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-card img.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+
 /* --- Estilos da Página de Espaços --- */
 .spaces-page {
   display: none; /* Escondido por padrão */
@@ -507,6 +560,21 @@ body {
   border-radius: 6px;
   border: none;
   cursor: pointer;
+}
+.connection-request-card {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.connection-request-card .user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 /* --- Estilos das Abas do Espaço --- */

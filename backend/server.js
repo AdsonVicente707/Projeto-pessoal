@@ -14,6 +14,10 @@ const invitationRoutes = require('./routes/invitationRoutes');
 const spacePostRoutes = require('./routes/spacePostRoutes');
 const noteRoutes = require('./routes/noteRoutes');
 const postRoutes = require('./routes/postRoutes');
+const connectionRoutes = require('./routes/connectionRoutes');
+const ensureUploadsDir = require('./middleware/ensureUploadsDir');
+const notificationRoutes = require('./routes/notificationRoutes');
+const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 // Carrega as variáveis de ambiente do arquivo .env
 dotenv.config();
@@ -43,24 +47,37 @@ const io = new Server(server, {
   }
 });
 
+// Disponibiliza a instância do io para ser usada nas rotas
+app.set('socketio', io);
+
 // Rota de teste para verificar se o servidor está funcionando
 app.get('/', (req, res) => {
   res.send('API está rodando...');
 });
 
+// Middleware para servir arquivos estáticos da pasta 'public'
+// Esta linha deve vir ANTES das suas rotas de API.
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Monta as rotas
 app.use('/api/users', userRoutes);
 app.use('/api/spaces', spaceRoutes);
-app.use('/api/invitations', invitationRoutes);
+app.use('/api/invitations', invitationRoutes); // Não precisa do middleware
 app.use('/api/space-posts', spacePostRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/connections', connectionRoutes);
+app.use('/api/notifications', notificationRoutes);
 
-// Torna a pasta 'public' acessível publicamente para servir as imagens/áudios
-app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+// Middlewares de tratamento de erro
+// Devem ser os últimos middlewares a serem adicionados.
+app.use(notFound);
+app.use(errorHandler);
 
 // Lógica do Socket.IO
 io.on('connection', (socket) => {
+  // Usuário entra em uma sala com seu próprio ID para receber notificações privadas
+  socket.on('join', (userId) => socket.join(userId));
   socket.on('joinSpace', (spaceId) => socket.join(spaceId));
   socket.on('chatMessage', ({ spaceId, message, user }) => {
     io.to(spaceId).emit('newChatMessage', { message, user });

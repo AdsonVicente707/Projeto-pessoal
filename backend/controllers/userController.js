@@ -1,25 +1,32 @@
 const User = require('../models/userModel.js');
 const generateToken = require('../utils/generateToken.js');
+const asyncHandler = require('express-async-handler');
 
 /**
  * @desc    Registra um novo usuário
  * @route   POST /api/users/register
  * @access  Public
  */
-const registerUser = async (req, res) => {
+const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
+
+  // Validação de entrada
+  if (!name || !email || !password) {
+    res.status(400);
+    throw new Error('Por favor, preencha todos os campos.');
+  }
 
   const userExists = await User.findOne({ email });
 
   if (userExists) {
     res.status(400);
-    throw new Error('Usuário já existe');
+    throw new Error('Usuário com este email já existe.');
   }
 
   const user = await User.create({
     name,
     email,
-    password, // A senha será criptografada pelo middleware no userModel
+    password, // A senha será criptografada pelo hook 'pre-save' no userModel
   });
 
   if (user) {
@@ -31,18 +38,17 @@ const registerUser = async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Dados de usuário inválidos');
+    throw new Error('Dados de usuário inválidos.');
   }
-};
+});
 
 /**
- * @desc    Autentica o usuário & obtém o token
+ * @desc    Autentica o usuário e obtém o token
  * @route   POST /api/users/login
  * @access  Public
  */
-const loginUser = async (req, res) => {
+const loginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
@@ -54,19 +60,25 @@ const loginUser = async (req, res) => {
     });
   } else {
     res.status(401); // 401 Unauthorized
-    throw new Error('Email ou senha inválidos');
+    throw new Error('Email ou senha inválidos.');
   }
-};
+});
 
 /**
  * @desc    Obtém o perfil do usuário logado
  * @route   GET /api/users/profile
  * @access  Private
  */
-const getUserProfile = async (req, res) => {
+const getUserProfile = asyncHandler(async (req, res) => {
   // req.user é preenchido pelo middleware 'protect'
-  const user = await User.findById(req.user._id);
-  res.json(user);
-};
+  const user = await User.findById(req.user._id).select('-password'); // Exclui a senha da resposta
+
+  if (user) {
+    res.json(user);
+  } else {
+    res.status(404);
+    throw new Error('Usuário não encontrado.');
+  }
+});
 
 module.exports = { registerUser, loginUser, getUserProfile };
