@@ -4,6 +4,7 @@ const {
   registerUser,
   loginUser,
   getUserProfile,
+  getUserConnections,
 } = require('../controllers/userController.js');
 const { protect } = require('../middleware/authMiddleware.js');
 
@@ -13,5 +14,7 @@ router.post('/register', registerUser);
 router.post('/login', loginUser);
 // Rota para obter o perfil do usuário (protegida)
 router.get('/profile', protect, getUserProfile);
+// Rota para obter a lista de conexões de um usuário (protegida)
+router.get('/:id/connections', protect, getUserConnections);
 
 module.exports = router;

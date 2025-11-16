@@ -16,7 +16,7 @@ const NotificationSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['connection_accepted', 'new_space_invite'], // Pode ser expandido no futuro
+    enum: ['connection_accepted', 'new_space_invite', 'new_connection_request'], // Pode ser expandido no futuro
   },
   read: {
     type: Boolean,

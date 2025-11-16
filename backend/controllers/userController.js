@@ -81,4 +81,23 @@ const getUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { registerUser, loginUser, getUserProfile };
+/**
+ * @desc    Obtém as conexões (amigos) de um usuário
+ * @route   GET /api/users/:id/connections
+ * @access  Private
+ */
+const getUserConnections = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).populate(
+    'connections',
+    'name avatar'
+  );
+
+  if (user) {
+    res.json(user.connections);
+  } else {
+    res.status(404);
+    throw new Error('Usuário não encontrado.');
+  }
+});
+
+module.exports = { registerUser, loginUser, getUserProfile, getUserConnections };

@@ -8,9 +8,14 @@ const asyncHandler = require('express-async-handler');
  * @access  Private
  */
 const getPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find({})
-    .populate('author', 'name')
+  // Cria um array com o ID do usuário logado e os IDs de suas conexões.
+  const authorsToFetch = [req.user._id, ...req.user.connections];
+
+  // Busca posts onde o autor esteja na lista de 'authorsToFetch'.
+  const posts = await Post.find({ author: { $in: authorsToFetch } })
+    .populate('author', 'name avatar') // Popula o autor com nome e avatar
     .sort({ createdAt: -1 });
+
   res.json(posts);
 });
 
