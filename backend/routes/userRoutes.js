@@ -5,6 +5,9 @@ const {
   loginUser,
   getUserProfile,
   getUserConnections,
+  getUserById,
+  updateUserProfilePicture,
+  updateUserBanner,
 } = require('../controllers/userController.js');
 const { protect } = require('../middleware/authMiddleware.js');
 
@@ -16,5 +19,11 @@ router.post('/login', loginUser);
 router.get('/profile', protect, getUserProfile);
 // Rota para obter a lista de conexões de um usuário (protegida)
 router.get('/:id/connections', protect, getUserConnections);
+// Rota para obter um usuário pelo ID (protegida)
+router.get('/:id', protect, getUserById);
+// Rota para atualizar a foto de perfil (protegida)
+router.put('/profile/picture', protect, updateUserProfilePicture);
+// Rota para atualizar o banner do perfil (protegida)
+router.put('/profile/banner', protect, updateUserBanner);
 
 module.exports = router;

@@ -20,6 +20,11 @@ const userSchema = mongoose.Schema(
     type: String,
     default: 'https://i.pravatar.cc/150'
   },
+  bannerUrl: {
+    type: String,
+    // Um banner padrão para novos usuários
+    default: 'https://placehold.co/1200x400/EFEFEF/AAAAAA&text=Banner'
+  },
   // Lista de IDs de usuários com quem este usuário está conectado (status 'accepted')
   connections: [{
     type: mongoose.Schema.Types.ObjectId,

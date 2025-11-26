@@ -17,6 +17,7 @@ const postRoutes = require('./routes/postRoutes');
 const connectionRoutes = require('./routes/connectionRoutes');
 const ensureUploadsDir = require('./middleware/ensureUploadsDir');
 const notificationRoutes = require('./routes/notificationRoutes');
+const messageRoutes = require('./routes/messageRoutes'); // Importa as novas rotas
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 
 // Carrega as variáveis de ambiente do arquivo .env
@@ -68,6 +69,7 @@ app.use('/api/notes', noteRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/connections', connectionRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/messages', messageRoutes); // Monta as rotas de mensagem
 
 // Middlewares de tratamento de erro
 // Devem ser os últimos middlewares a serem adicionados.
