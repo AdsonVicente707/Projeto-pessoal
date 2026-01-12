@@ -13,7 +13,7 @@ const getPosts = asyncHandler(async (req, res) => {
 
   // Busca posts onde o autor esteja na lista de 'authorsToFetch'.
   const posts = await Post.find({ author: { $in: authorsToFetch } })
-    .populate('author', 'name avatar') // Popula o autor com nome e avatar
+    .populate('author', 'name avatar avatarPosX avatarPosY') // Popula o autor com nome, avatar e posição
     .sort({ createdAt: -1 });
 
   res.json(posts);
@@ -30,7 +30,7 @@ const createPost = asyncHandler(async (req, res) => {
 
   if (req.files && req.files.photo) {
     const photo = req.files.photo;
-    const uploadPath = path.join(__dirname, '..', 'public', 'uploads', `${Date.now()}_${photo.name}`);
+    const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${photo.name}`);
     try {
       await photo.mv(uploadPath);
       // Constrói a URL completa da imagem
@@ -55,7 +55,7 @@ const createPost = asyncHandler(async (req, res) => {
     imageUrl,
   });
 
-  const createdPost = await Post.findById(post._id).populate('author', 'name');
+  const createdPost = await Post.findById(post._id).populate('author', 'name avatar avatarPosX avatarPosY');
   res.status(201).json(createdPost);
 });
 
@@ -88,7 +88,7 @@ const likePost = asyncHandler(async (req, res) => {
   }
 
   await post.save();
-  const updatedPost = await Post.findById(post._id).populate('author', 'name');
+  const updatedPost = await Post.findById(post._id).populate('author', 'name avatar avatarPosX avatarPosY');
   res.json(updatedPost);
 });
 

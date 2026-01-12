@@ -44,7 +44,6 @@ const createSpacePost = asyncHandler(async (req, res) => {
     const uploadPath = path.join(
       __dirname,
       '..',
-      'public',
       'uploads',
       `${Date.now()}_${photo.name}`
     );

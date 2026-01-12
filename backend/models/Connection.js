@@ -16,6 +16,10 @@ const ConnectionSchema = new mongoose.Schema({
     enum: ['pending', 'accepted', 'declined'],
     default: 'pending',
   },
+  isFamily: {
+    type: Boolean,
+    default: false
+  }
 }, { timestamps: true });
 
 // Garante que não haja pedidos duplicados entre as mesmas duas pessoas

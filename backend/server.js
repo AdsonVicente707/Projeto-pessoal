@@ -1,4 +1,5 @@
 const express = require('express');
+const fs = require('fs'); // Necessário para verificar/criar diretórios
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const fileUpload = require('express-fileupload');
@@ -12,6 +13,8 @@ const userRoutes = require('./routes/userRoutes');
 const spaceRoutes = require('./routes/spaceRoutes');
 const invitationRoutes = require('./routes/invitationRoutes');
 const spacePostRoutes = require('./routes/spacePostRoutes');
+const User = require('./models/userModel'); // Importar o modelo de Usuário
+const Message = require('./models/Message'); // Importar modelo de Mensagem
 const noteRoutes = require('./routes/noteRoutes');
 const postRoutes = require('./routes/postRoutes');
 const connectionRoutes = require('./routes/connectionRoutes');
@@ -33,6 +36,7 @@ app.use(cors());
 
 // Permite que o servidor aceite dados JSON no corpo da requisição
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Garante parsing de formulários
 
 // Middleware para upload de arquivos
 app.use(fileUpload());
@@ -43,7 +47,7 @@ const server = http.createServer(app);
 // Inicializa o Socket.IO atrelado ao servidor HTTP
 const io = new Server(server, {
   cors: {
-    origin: "http://127.0.0.1:5500", // Permite a conexão do seu frontend
+    origin: "*", // Permite qualquer origem para evitar problemas de conexão em dev
     methods: ["GET", "POST"]
   }
 });
@@ -51,14 +55,24 @@ const io = new Server(server, {
 // Disponibiliza a instância do io para ser usada nas rotas
 app.set('socketio', io);
 
+// Mapa para rastrear usuários online: userId -> socketId
+const onlineUsers = new Map();
+
 // Rota de teste para verificar se o servidor está funcionando
 app.get('/', (req, res) => {
   res.send('API está rodando...');
 });
 
+// Garante que a pasta de uploads exista fora de 'public' para evitar reloads do frontend
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)){
+    fs.mkdirSync(uploadsDir);
+}
+
 // Middleware para servir arquivos estáticos da pasta 'public'
 // Esta linha deve vir ANTES das suas rotas de API.
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(uploadsDir)); // Serve os arquivos da pasta uploads na rota /uploads
 
 // Monta as rotas
 app.use('/api/users', userRoutes);
@@ -78,11 +92,57 @@ app.use(errorHandler);
 
 // Lógica do Socket.IO
 io.on('connection', (socket) => {
+  
+  // Quando um usuário se conecta e se identifica
+  socket.on('user_connected', (userId) => {
+    console.log(`Usuário ${userId} conectado e entrou na sala.`);
+    onlineUsers.set(userId, socket.id);
+    socket.join(userId); // Entra na sala privada
+    
+    // Avisa a todos que este usuário está online
+    io.emit('user_status_change', { userId, status: 'online' });
+    
+    // Envia a lista atual de usuários online para quem acabou de entrar
+    socket.emit('online_users_list', Array.from(onlineUsers.keys()));
+  });
+
   // Usuário entra em uma sala com seu próprio ID para receber notificações privadas
   socket.on('join', (userId) => socket.join(userId));
   socket.on('joinSpace', (spaceId) => socket.join(spaceId));
+  
   socket.on('chatMessage', ({ spaceId, message, user }) => {
     io.to(spaceId).emit('newChatMessage', { message, user });
+  });
+
+  // Eventos de Digitando
+  socket.on('typing', ({ recipientId, senderId }) => {
+    io.to(recipientId).emit('display_typing', { senderId });
+  });
+
+  socket.on('stop_typing', ({ recipientId, senderId }) => {
+    io.to(recipientId).emit('hide_typing', { senderId });
+  });
+
+  // Marcar como lido em tempo real
+  socket.on('mark_as_read', async ({ senderId, recipientId }) => {
+    await Message.updateMany(
+      { sender: senderId, recipient: recipientId, read: false },
+      { read: true, readAt: Date.now() }
+    );
+    // Avisa o remetente (senderId) que o destinatário (recipientId) leu
+    io.to(senderId).emit('messages_read', { byUserId: recipientId });
+  });
+
+  socket.on('disconnect', () => {
+    // Encontra o userId baseado no socket.id
+    const userId = [...onlineUsers.entries()].find(([key, val]) => val === socket.id)?.[0];
+    if (userId) {
+      onlineUsers.delete(userId);
+      const lastSeen = new Date();
+      // Atualiza o lastSeen no banco de dados
+      User.findByIdAndUpdate(userId, { lastSeen }).catch(err => console.error('Erro ao atualizar lastSeen:', err));
+      io.emit('user_status_change', { userId, status: 'offline', lastSeen });
+    }
   });
 });
 

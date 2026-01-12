@@ -23,7 +23,8 @@ const conversationSchema = new mongoose.Schema(
 // vamos ordenar os IDs antes de salvar. Isso garante que [userA, userB] e [userB, userA] sejam tratados como iguais.
 conversationSchema.pre('save', function (next) {
   if (this.isNew) {
-    this.participants.sort();
+    // Ordena convertendo para string para garantir consistência
+    this.participants.sort((a, b) => (a.toString() < b.toString() ? -1 : 1));
   }
   next();
 });

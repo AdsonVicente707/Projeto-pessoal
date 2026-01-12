@@ -8,6 +8,9 @@ const {
   getUserById,
   updateUserProfilePicture,
   updateUserBanner,
+  getUserProfileInfo,
+  getPrivateMemories,
+  updateAvatarPosition
 } = require('../controllers/userController.js');
 const { protect } = require('../middleware/authMiddleware.js');
 
@@ -25,5 +28,10 @@ router.get('/:id', protect, getUserById);
 router.put('/profile/picture', protect, updateUserProfilePicture);
 // Rota para atualizar o banner do perfil (protegida)
 router.put('/profile/banner', protect, updateUserBanner);
+// Novas rotas para perfil avançado
+router.get('/:id/profile-info', protect, getUserProfileInfo);
+router.get('/:id/private-memories', protect, getPrivateMemories);
+// Rota para atualizar a posição do avatar
+router.put('/profile/position', protect, updateAvatarPosition);
 
 module.exports = router;

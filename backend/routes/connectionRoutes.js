@@ -145,4 +145,30 @@ router.post('/:requestId/respond', auth, asyncHandler(async (req, res) => {
   }
 }));
 
+// @route   DELETE api/connections/:userId
+// @desc    Remover uma conexão (Deixar de seguir)
+// @access  Private
+router.delete('/:userId', auth, asyncHandler(async (req, res) => {
+  const currentUserId = req.user.id;
+  const otherUserId = req.params.userId;
+
+  // Encontra a conexão aceita entre os dois usuários
+  const connection = await Connection.findOne({
+    $or: [
+      { requester: currentUserId, recipient: otherUserId },
+      { requester: otherUserId, recipient: currentUserId }
+    ],
+    status: 'accepted'
+  });
+
+  if (connection) {
+    await Connection.findByIdAndDelete(connection._id);
+    // Remove dos arrays de conexões dos usuários
+    await User.findByIdAndUpdate(currentUserId, { $pull: { connections: otherUserId } });
+    await User.findByIdAndUpdate(otherUserId, { $pull: { connections: currentUserId } });
+  }
+
+  res.json({ msg: 'Conexão removida.' });
+}));
+
 module.exports = router;

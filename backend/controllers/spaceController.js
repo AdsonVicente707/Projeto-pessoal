@@ -139,7 +139,7 @@ const uploadPhotoToSpace = asyncHandler(async (req, res) => {
   }
 
   const photo = req.files.photo;
-  const uploadPath = path.join(__dirname, '..', 'public', 'uploads', `${Date.now()}_${photo.name}`);
+  const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${photo.name}`);
 
   await photo.mv(uploadPath);
 
@@ -182,7 +182,7 @@ const uploadAudioToSpace = asyncHandler(async (req, res) => {
   }
 
   const audio = req.files.audio;
-  const uploadPath = path.join(__dirname, '..', 'public', 'uploads', `${Date.now()}.webm`);
+  const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}.webm`);
 
   await audio.mv(uploadPath);
 
@@ -196,6 +196,50 @@ const uploadAudioToSpace = asyncHandler(async (req, res) => {
   res.json(space);
 });
 
+/**
+ * @desc    Buscar espaços onde o usuário é membro (criados ou adicionados)
+ * @route   GET /api/spaces/user/:userId
+ * @access  Private
+ */
+const getUserSpaces = asyncHandler(async (req, res) => {
+  const spaces = await Space.find({ members: req.params.userId });
+  res.json(spaces);
+});
+
+/**
+ * @desc    Sair de um espaço
+ * @route   POST /api/spaces/:id/leave
+ * @access  Private
+ */
+const leaveSpace = asyncHandler(async (req, res) => {
+  const space = await Space.findById(req.params.id);
+
+  if (!space) {
+    res.status(404);
+    throw new Error('Espaço não encontrado.');
+  }
+
+  // Verifica se o usuário é membro
+  if (!space.members.includes(req.user._id)) {
+    res.status(400);
+    throw new Error('Você não é membro deste espaço.');
+  }
+
+  // Impede que o criador saia (ele deve deletar o espaço ou transferir)
+  if (space.creator.toString() === req.user._id.toString()) {
+    res.status(400);
+    throw new Error('O criador não pode sair do espaço. Delete-o se desejar.');
+  }
+
+  // Remove o usuário da lista de membros
+  space.members = space.members.filter(
+    (memberId) => memberId.toString() !== req.user._id.toString()
+  );
+
+  await space.save();
+  res.json({ message: 'Você saiu do espaço.' });
+});
+
 module.exports = {
   createSpace,
   getMySpaces,
@@ -203,4 +247,6 @@ module.exports = {
   inviteUserToSpace,
   uploadPhotoToSpace,
   uploadAudioToSpace,
+  getUserSpaces,
+  leaveSpace,
 };

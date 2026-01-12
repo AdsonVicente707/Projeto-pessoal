@@ -14,7 +14,10 @@ const messageSchema = new mongoose.Schema(
     },
     body: {
       type: String,
-      required: true,
+      required: false,
+    },
+    imageUrl: {
+      type: String,
     },
     // Adicionar uma referência à conversa pode otimizar as buscas no futuro,
     // mas por enquanto vamos manter os campos que você pediu.

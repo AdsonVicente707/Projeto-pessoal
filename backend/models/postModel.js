@@ -16,6 +16,10 @@ const postSchema = mongoose.Schema(
     imageUrl: {
       type: String,
     },
+    isFamilyOnly: {
+      type: Boolean,
+      default: false,
+    },
     likes: [
       {
         type: mongoose.Schema.Types.ObjectId,

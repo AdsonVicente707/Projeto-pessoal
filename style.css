@@ -48,12 +48,20 @@ body {
 }
 .notification-dot {
   position: absolute;
-  top: 12px;
-  left: 22px;
-  width: 8px;
-  height: 8px;
+  top: -5px;
+  right: -5px;
+  left: auto;
+  min-width: 16px;
+  height: auto;
+  padding: 2px 4px;
+  font-size: 0.7rem;
+  color: white;
   background-color: #ff3b30; /* Vermelho para notificação */
-  border-radius: 50%;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
 }
 .hidden {
   display: none;
@@ -316,23 +324,71 @@ body {
 
 .profile-header-section {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  gap: 30px;
+  max-width: 935px; /* Largura padrão estilo Instagram */
+  margin: 0 auto 30px auto;
   margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e6ecf0;
+  padding-bottom: 40px;
+  border-bottom: 1px solid #dbdbdb;
 }
 
 .profile-header-section img.avatar {
-  width: 80px;
-  height: 80px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  margin-right: 20px;
+  margin-right: 0;
+  object-fit: cover; /* Essencial para object-position funcionar */
+  border: 1px solid #dbdbdb;
+  padding: 2px;
+}
+
+.profile-info-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .profile-header-section h2 {
   margin: 0;
-  font-size: 2em;
+  font-size: 1.8em;
+  font-weight: 300;
   color: #1F2937;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 40px;
+  font-size: 1em;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column; /* Empilha número e rótulo ou mantém linha dependendo da preferência, aqui ajustamos para linha com destaque */
+  align-items: center;
+}
+
+/* Inverte a lógica visual: span (número) grande, strong (rótulo) normal */
+.stat-item span {
+  font-weight: 700;
+  font-size: 1.2em;
+  color: #262626;
+  display: block;
+}
+
+.stat-item strong {
+  font-weight: 400;
+  color: #8e8e8e;
+  font-size: 0.9em;
+}
+
+.profile-bio {
+  font-size: 0.95em;
+  color: #262626;
+  line-height: 1.5;
+  white-space: pre-wrap; /* Preserva quebras de linha */
+  margin: 0;
 }
 
 .profile-posts-title {
@@ -341,6 +397,34 @@ body {
   margin-bottom: 20px;
   border-bottom: 1px solid #e6ecf0;
   padding-bottom: 10px;
+}
+
+/* Ajustes Mobile para o Perfil */
+@media (max-width: 768px) {
+  .profile-header-section {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .profile-header-section img.avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-info-container {
+    align-items: center;
+    width: 100%;
+  }
+
+  .profile-stats {
+    justify-content: center;
+    gap: 20px;
+    width: 100%;
+    border-top: 1px solid #efefef;
+    padding-top: 15px;
+  }
 }
 
 /* Oculta os elementos da página principal quando o perfil está ativo */
@@ -827,6 +911,238 @@ body {
 .audio-list audio {
   width: 100%;
   margin-top: 10px;
+}
+
+/* --- Modal de Mensagens (Estilo Direct) --- */
+.messages-modal-content {
+  background: white;
+  width: 900px;
+  height: 600px;
+  max-width: 95%;
+  max-height: 90vh;
+  border-radius: 12px;
+  display: flex;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.messages-sidebar {
+  width: 35%;
+  border-right: 1px solid #dbdbdb;
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-header {
+  padding: 20px;
+  border-bottom: 1px solid #dbdbdb;
+  text-align: center;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.conversations-list {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversation-item:hover, .conversation-item.active {
+  background-color: #efefef;
+}
+
+.conversation-item img.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  margin-right: 15px;
+  object-fit: cover;
+}
+
+.avatar-wrapper {
+  position: relative;
+  margin-right: 15px;
+}
+
+.online-status-dot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background-color: #10B981; /* Verde */
+  border: 2px solid white;
+  border-radius: 50%;
+  display: none; /* Escondido por padrão */
+}
+
+.online-status-dot.online {
+  display: block;
+}
+
+.convo-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.messages-chat-area {
+  width: 65%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #dbdbdb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-header img.avatar {
+  width: 32px; /* Foto menor para foco na conversa */
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.chat-header-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.chat-feed {
+  flex-grow: 1;
+  padding: 20px;
+  overflow-y: auto;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.msg-bubble {
+  max-width: 70%;
+  padding: 10px 15px;
+  border-radius: 20px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.msg-bubble.me {
+  background-color: #3B82F6; /* Azul do tema */
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.msg-bubble.other {
+  background-color: #efefef;
+  color: #262626;
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.msg-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.msg-file-attachment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.05);
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 5px;
+}
+
+.msg-file-attachment a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+#msg-preview-container {
+  padding: 10px 15px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #efefef;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#msg-preview-img {
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+#msg-preview-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.msg-input-area {
+  padding: 10px 15px;
+  border-top: 1px solid #efefef;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #fff;
+}
+
+#msg-input {
+  flex-grow: 1;
+  padding: 10px 15px;
+  border: 1px solid #dbdbdb;
+  border-radius: 22px; /* Formato de pílula */
+  background-color: #efefef;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+#msg-input:focus {
+  background-color: #fff;
+  border-color: #ccc;
+}
+
+#emoji-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  transition: transform 0.1s;
+}
+
+#msg-send-btn {
+  background: none;
+  border: none;
+  color: #3B82F6;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
 }
 }
 }

@@ -84,7 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Se o usuário já estiver logado, redireciona para a página principal
-    if (localStorage.getItem('userInfo')) {
+    const storedUser = JSON.parse(localStorage.getItem('userInfo'));
+    if (storedUser && storedUser.token) {
         window.location.href = 'index.html';
     }
 });

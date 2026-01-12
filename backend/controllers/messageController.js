@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Conversation = require('../models/Conversation.js');
 const Message = require('../models/Message.js');
 const User = require('../models/userModel.js');
+const path = require('path');
 
 /**
  * @desc    Buscar todas as conversas do usuário
@@ -13,7 +14,7 @@ const getConversations = asyncHandler(async (req, res) => {
     participants: req.user._id,
   }).populate({
     path: 'participants',
-    select: 'name avatar',
+    select: 'name avatar lastSeen',
     // Filtra o próprio usuário da lista de participantes para mostrar apenas o outro
     match: { _id: { $ne: req.user._id } },
   });
@@ -54,6 +55,16 @@ const getMessages = asyncHandler(async (req, res) => {
     return res.json([]); // Retorna array vazio se não houver conversa
   }
 
+  // Marcar mensagens não lidas do outro usuário como lidas
+  await Message.updateMany(
+    { sender: otherUserId, recipient: currentUserId, read: false },
+    { read: true, readAt: Date.now() }
+  );
+
+  // Notificar o remetente que as mensagens foram lidas
+  const io = req.app.get('socketio');
+  io.to(otherUserId).emit('messages_read', { byUserId: currentUserId });
+
   // Busca as mensagens trocadas entre os dois, com paginação
   const messages = await Message.find({
     $or: [
@@ -77,25 +88,72 @@ const sendMessage = asyncHandler(async (req, res) => {
   const { body } = req.body;
   const { otherUserId } = req.params;
   const senderId = req.user._id;
+  console.log(`Recebendo mensagem de ${senderId} para ${otherUserId}. Body:`, req.body);
 
-  if (!body) {
-    res.status(400);
-    throw new Error('O corpo da mensagem não pode estar vazio.');
+  let imageUrl = null;
+  let fileUrl = null;
+  let fileName = null;
+
+  if (req.files && req.files.photo) {
+    const photo = req.files.photo;
+    // Salva fora da pasta public para evitar reload do frontend
+    const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${photo.name}`);
+    
+    try {
+      await photo.mv(uploadPath);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      imageUrl = `${baseUrl}/uploads/${path.basename(uploadPath)}`;
+    } catch (error) {
+      res.status(500);
+      throw new Error('Falha no upload da imagem.');
+    }
   }
 
-  // Encontra ou cria a conversa. O 'upsert' garante que se não existir, será criada.
-  // O hook 'pre-save' no modelo Conversation lida com a ordenação e unicidade.
-  // Também atualizamos o timestamp para que a conversa apareça no topo da lista.
-  const conversation = await Conversation.findOneAndUpdate(
-    { participants: { $all: [senderId, otherUserId] } },
-    { $set: { participants: [senderId, otherUserId] } }, // Garante que os participantes estão corretos e aciona a atualização
-    { upsert: true, new: true }
-  );
+  if (req.files && req.files.file) {
+    const file = req.files.file;
+    // Salva fora da pasta public para evitar reload do frontend
+    const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${file.name}`);
+    
+    try {
+      await file.mv(uploadPath);
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      fileUrl = `${baseUrl}/uploads/${path.basename(uploadPath)}`;
+      fileName = file.name;
+    } catch (error) {
+      res.status(500);
+      throw new Error('Falha no upload do arquivo.');
+    }
+  }
+
+  if (!body && !imageUrl && !fileUrl) {
+    res.status(400);
+    throw new Error('A mensagem deve conter texto ou imagem.');
+  }
+
+  // Busca conversa existente independente da ordem dos participantes
+  let conversation = await Conversation.findOne({
+    participants: { $all: [senderId, otherUserId] }
+  });
+
+  if (conversation) {
+    // Se existir, atualiza o timestamp para subir na lista
+    conversation.updatedAt = Date.now();
+    await conversation.save();
+  } else {
+    // Se não existir, cria uma nova. O hook pre-save do model ordena automaticamente.
+    conversation = await Conversation.create({
+      participants: [senderId, otherUserId]
+    });
+  }
 
   const newMessage = await Message.create({
     sender: senderId,
     recipient: otherUserId,
     body,
+    imageUrl,
+    fileUrl,
+    fileName,
+    read: false
   });
 
   // Popula a mensagem com os dados do remetente para enviar via socket
