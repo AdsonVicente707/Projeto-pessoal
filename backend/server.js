@@ -21,7 +21,6 @@ const Message = require('./models/Message'); // Importar modelo de Mensagem
 const noteRoutes = require('./routes/noteRoutes');
 const postRoutes = require('./routes/postRoutes');
 const connectionRoutes = require('./routes/connectionRoutes');
-const ensureUploadsDir = require('./middleware/ensureUploadsDir');
 const notificationRoutes = require('./routes/notificationRoutes');
 const messageRoutes = require('./routes/messageRoutes'); // Importa as novas rotas
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
