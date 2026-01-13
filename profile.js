@@ -202,6 +202,7 @@ export async function showProfileView(author) {
     const connectionsCount = document.getElementById('profile-connections-count');
     const followingCount = document.getElementById('profile-following-count');
     const profileCreatedSpaces = document.getElementById('profile-created-spaces');
+    const profileBanner = document.getElementById('profile-banner-display');
 
     // UI Updates
     if (author.avatar && author.avatar.includes('pravatar.cc')) {
@@ -212,6 +213,17 @@ export async function showProfileView(author) {
     
     // Aplica a posição salva
     profileAvatar.style.objectPosition = `${author.avatarPosX || 50}% ${author.avatarPosY || 50}%`;
+
+    // Aplica Banner
+    if (profileBanner) {
+        const bannerSrc = author.bannerUrl || author.banner;
+        if (bannerSrc) {
+            profileBanner.src = bannerSrc;
+            profileBanner.style.display = 'block';
+        } else {
+            profileBanner.style.display = 'none'; // Esconde se não tiver banner
+        }
+    }
 
     profileName.innerText = author.name;
     if (profileBio) {
@@ -472,7 +484,19 @@ export async function showProfileView(author) {
                     spaces.forEach(space => {
                         const card = document.createElement('div');
                         card.className = 'space-card';
-                        card.innerHTML = `<h3>${space.name}</h3>`;
+                        
+                        // Define o estilo da capa (Imagem, Cor ou Padrão)
+                        let coverStyle = 'background-color: #3B82F6;'; // Cor padrão (Azul)
+                        if (space.background) {
+                            if (space.background.startsWith('#')) {
+                                coverStyle = `background-color: ${space.background};`;
+                            } else {
+                                coverStyle = `background-image: url('${space.background}');`;
+                            }
+                        }
+
+                        // Estrutura atualizada com capa e título centralizado
+                        card.innerHTML = `<div class="space-card-cover" style="${coverStyle}"><h3>${space.name}</h3></div>`;
                         card.addEventListener('click', () => showSpaceDetailView(space._id));
                         list.appendChild(card);
                     });

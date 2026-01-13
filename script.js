@@ -2,12 +2,18 @@ import { checkAuth, logout, currentUser, userInfo } from './auth.js';
 import { initTimeline, showTimelineView } from './timeline.js';
 import { showProfileView, initProfile } from './profile.js';
 import { initSpaces, showSpacesView } from './spaces.js';
-import { API_URL, getAuthHeaders } from './api.js';
+import { API_URL, getAuthHeaders, getUploadHeaders } from './api.js';
 import { initMessages, openMessagesModal } from './messages.js';
 
 // Verifica autenticação antes de tudo
 if (!checkAuth()) {
     throw new Error("Redirecionando para login...");
+}
+
+// --- APLICAÇÃO IMEDIATA DO TEMA (Evita flash de luz) ---
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'dark') {
+    document.body.classList.add('dark-mode');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -21,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const spacesPage = document.getElementById('spaces-page');
   const spaceDetailPage = document.getElementById('space-detail-page');
   const invitationsPage = document.getElementById('invitations-page');
+  const settingsPage = document.getElementById('settings-page');
 
   // Inicializa Top Bar Profile
   if (currentUser) {
@@ -35,11 +42,20 @@ document.addEventListener('DOMContentLoaded', function() {
     if (topTrigger) {
         topTrigger.addEventListener('click', () => showProfileView(currentUser));
     }
+
+    // --- APLICAÇÃO DE PREFERÊNCIAS VISUAIS ---
+    // 1. Fundo do Chat
+    if (currentUser.chatBackground) {
+        const chatArea = document.getElementById('msg-chat-area');
+        if (chatArea) chatArea.style.backgroundImage = `url('${currentUser.chatBackground}')`;
+    }
+    // 2. Banner do Perfil (será aplicado no showProfileView, mas podemos pré-carregar se quiser)
+    
+    initSettings(); // Inicializa lógica da página de configurações
   }
 
   // Inicializa Módulos
   initTimeline();
-  initSpaces();
   initProfile();
 
   // Inicializa Socket.io para notificações
@@ -56,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Inicializa o módulo de mensagens passando o socket
   initMessages(socket);
+  initSpaces(socket); // Passa o socket para os espaços também
 
   socket.on('new_notification', () => {
     const notificationDot = document.querySelector('.notification-dot');
@@ -109,6 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
       spaceDetailPage.style.display = 'none';
       invitationsPage.style.display = 'none';
       timelineFeed.style.display = 'none';
+      settingsPage.style.display = 'none';
       document.querySelector('.create-post').style.display = 'none';
 
       if (this.innerText.includes('Início')) {
@@ -127,6 +145,9 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       if (this.innerText.includes('Convites')) {
         showInvitationsView();
+      }
+      if (this.innerText.includes('Configurações')) {
+        settingsPage.style.display = 'block';
       }
     });
   });
@@ -285,4 +306,76 @@ document.addEventListener('DOMContentLoaded', function() {
         fetchAndRenderConnectionRequests();
     }
   });
+
+  // --- Lógica da Página de Configurações ---
+  function initSettings() {
+      const saveBannerBtn = document.getElementById('save-banner-btn');
+      const saveChatBgBtn = document.getElementById('save-chatbg-btn');
+      const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+      // Configura o estado inicial do toggle
+      if (localStorage.getItem('theme') === 'dark') {
+          darkModeToggle.checked = true;
+      }
+
+      // Evento de troca de tema
+      darkModeToggle.addEventListener('change', () => {
+          document.body.classList.toggle('dark-mode');
+          localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      });
+
+      if (saveBannerBtn) {
+          saveBannerBtn.addEventListener('click', async () => {
+              const input = document.getElementById('settings-banner-input');
+              if (input.files.length === 0) return alert('Selecione uma imagem para o banner.');
+              
+              const formData = new FormData();
+              formData.append('banner', input.files[0]);
+
+              try {
+                  saveBannerBtn.textContent = 'Salvando...';
+                  
+                  const res = await fetch(`${API_URL}/users/profile/banner`, { 
+                      method: 'PUT', 
+                      body: formData, 
+                      headers: getUploadHeaders() 
+                  });
+
+                  if (!res.ok) throw new Error('Erro ao salvar banner');
+
+                  const updatedUser = await res.json();
+
+                  // Atualiza currentUser e LocalStorage com a URL real do servidor
+                  currentUser.bannerUrl = updatedUser.bannerUrl;
+                  
+                  const stored = JSON.parse(localStorage.getItem('userInfo'));
+                  stored.bannerUrl = updatedUser.bannerUrl;
+                  localStorage.setItem('userInfo', JSON.stringify(stored));
+                  
+                  alert('Banner atualizado com sucesso!');
+                  saveBannerBtn.textContent = 'Atualizar Banner';
+              } catch (e) { console.error(e); }
+          });
+      }
+
+      if (saveChatBgBtn) {
+          saveChatBgBtn.addEventListener('click', () => {
+              const input = document.getElementById('settings-chatbg-input');
+              if (input.files.length === 0) return alert('Selecione uma imagem.');
+              
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                  const result = e.target.result;
+                  currentUser.chatBackground = result;
+                  const stored = JSON.parse(localStorage.getItem('userInfo'));
+                  stored.chatBackground = result;
+                  localStorage.setItem('userInfo', JSON.stringify(stored));
+                  
+                  document.getElementById('msg-chat-area').style.backgroundImage = `url('${result}')`;
+                  alert('Fundo do chat atualizado!');
+              };
+              reader.readAsDataURL(input.files[0]);
+          });
+      }
+  }
 });

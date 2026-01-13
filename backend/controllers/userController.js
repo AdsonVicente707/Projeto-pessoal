@@ -40,6 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       avatarPosX: user.avatarPosX,
       avatarPosY: user.avatarPosY,
+      bannerUrl: user.bannerUrl,
       token: generateToken(user._id),
     });
   } else {
@@ -65,6 +66,7 @@ const loginUser = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       avatarPosX: user.avatarPosX,
       avatarPosY: user.avatarPosY,
+      bannerUrl: user.bannerUrl,
       token: generateToken(user._id),
     });
   } else {

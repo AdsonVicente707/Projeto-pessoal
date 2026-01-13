@@ -18,6 +18,16 @@ const spaceSchema = mongoose.Schema(
         ref: 'User', // Referência ao modelo User
       },
     ],
+    background: {
+      type: String,
+      default: '', // Pode ser uma URL de imagem ou um código HEX de cor
+    },
+    photoUrls: [{
+      type: String
+    }],
+    audioUrls: [{
+      type: String
+    }],
   },
   {
     timestamps: true,

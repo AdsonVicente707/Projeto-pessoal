@@ -16,7 +16,8 @@ const getSpacePosts = asyncHandler(async (req, res) => {
   }
 
   const posts = await SpacePost.find({ space: req.params.spaceId })
-    .populate('author', 'name')
+    .populate('author', 'name avatar')
+    .populate('comments.author', 'name avatar')
     .sort({ createdAt: -1 });
 
   res.json(posts);
@@ -72,9 +73,57 @@ const createSpacePost = asyncHandler(async (req, res) => {
     imageUrl,
   });
 
-  const createdPost = await SpacePost.findById(post._id).populate('author', 'name');
+  const createdPost = await SpacePost.findById(post._id).populate('author', 'name avatar');
 
   res.status(201).json(createdPost);
 });
 
-module.exports = { getSpacePosts, createSpacePost };
+const likeSpacePost = asyncHandler(async (req, res) => {
+  const post = await SpacePost.findById(req.params.id);
+  if (!post) {
+    res.status(404);
+    throw new Error('Post não encontrado.');
+  }
+
+  const alreadyLiked = post.likes.some(
+    (like) => like.toString() === req.user._id.toString()
+  );
+
+  if (alreadyLiked) {
+    post.likes = post.likes.filter(
+      (like) => like.toString() !== req.user._id.toString()
+    );
+  } else {
+    post.likes.push(req.user._id);
+  }
+
+  await post.save();
+  const updatedPost = await SpacePost.findById(post._id)
+    .populate('author', 'name avatar')
+    .populate('comments.author', 'name avatar');
+  res.json(updatedPost);
+});
+
+const commentSpacePost = asyncHandler(async (req, res) => {
+  const { text } = req.body;
+  const post = await SpacePost.findById(req.params.id);
+
+  if (!post) {
+    res.status(404);
+    throw new Error('Post não encontrado.');
+  }
+  if (!text) {
+    res.status(400);
+    throw new Error('Comentário vazio.');
+  }
+
+  const comment = {
+    text,
+    author: req.user._id,
+  };
+  post.comments.push(comment);
+  await post.save();
+  res.status(201).json({ message: 'Comentário adicionado' });
+});
+
+module.exports = { getSpacePosts, createSpacePost, likeSpacePost, commentSpacePost };

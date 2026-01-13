@@ -24,6 +24,7 @@ const connectionRoutes = require('./routes/connectionRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const messageRoutes = require('./routes/messageRoutes'); // Importa as novas rotas
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
+const SpaceMessage = require('./models/SpaceMessage');
 
 // Conecta ao banco de dados
 connectDB();
@@ -116,8 +117,16 @@ io.on('connection', (socket) => {
   socket.on('join', (userId) => socket.join(userId));
   socket.on('joinSpace', (spaceId) => socket.join(spaceId));
   
-  socket.on('chatMessage', ({ spaceId, message, user }) => {
-    io.to(spaceId).emit('newChatMessage', { message, user });
+  socket.on('chatMessage', async ({ spaceId, message, user }) => {
+    try {
+      // Salva a mensagem no banco de dados
+      await SpaceMessage.create({
+        space: spaceId,
+        sender: user._id,
+        message
+      });
+      io.to(spaceId).emit('newChatMessage', { message, user });
+    } catch (error) { console.error('Erro ao salvar mensagem do espaço:', error); }
   });
 
   // Eventos de Digitando

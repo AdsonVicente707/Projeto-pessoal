@@ -3,6 +3,7 @@ const User = require('../models/userModel.js');
 const Invitation = require('../models/invitationModel.js');
 const path = require('path');
 const asyncHandler = require('express-async-handler');
+const SpaceMessage = require('../models/SpaceMessage.js');
 
 /**
  * @desc    Criar um novo espaço
@@ -10,7 +11,7 @@ const asyncHandler = require('express-async-handler');
  * @access  Private
  */
 const createSpace = asyncHandler(async (req, res) => {
-  const { name } = req.body;
+  const { name, color } = req.body;
 
   if (!name) {
     res.status(400);
@@ -21,6 +22,7 @@ const createSpace = asyncHandler(async (req, res) => {
     name,
     creator: req.user._id,
     members: [req.user._id],
+    background: color || '' // Salva a cor se enviada
   });
 
   const createdSpace = await space.save();
@@ -240,6 +242,132 @@ const leaveSpace = asyncHandler(async (req, res) => {
   res.json({ message: 'Você saiu do espaço.' });
 });
 
+/**
+ * @desc    Atualizar configurações do espaço (Nome, Fundo)
+ * @route   PUT /api/spaces/:id
+ * @access  Private
+ */
+const updateSpaceSettings = asyncHandler(async (req, res) => {
+  const spaceId = req.params.id;
+  const { name, color } = req.body;
+  
+  const space = await Space.findById(spaceId);
+  if (!space) {
+    res.status(404);
+    throw new Error('Espaço não encontrado.');
+  }
+
+  // Verifica se é o criador
+  if (space.creator.toString() !== req.user._id.toString()) {
+    res.status(403);
+    throw new Error('Apenas o criador pode editar as configurações do espaço.');
+  }
+
+  if (name) space.name = name;
+
+  // Lógica de Fundo: Prioriza Imagem, senão usa Cor
+  if (req.files && req.files.background) {
+    const file = req.files.background;
+    const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${file.name}`);
+    await file.mv(uploadPath);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    space.background = `${baseUrl}/uploads/${path.basename(uploadPath)}`;
+  } else if (color) {
+    space.background = color;
+  }
+
+  const updatedSpace = await space.save();
+  res.json(updatedSpace);
+});
+
+/**
+ * @desc    Buscar mensagens do chat do espaço
+ * @route   GET /api/spaces/:id/messages
+ * @access  Private
+ */
+const getSpaceMessages = asyncHandler(async (req, res) => {
+  const messages = await SpaceMessage.find({ space: req.params.id })
+    .populate('sender', 'name avatar')
+    .sort({ createdAt: 1 }); // Ordem cronológica (antigas primeiro)
+
+  res.json(messages);
+});
+
+/**
+ * @desc    Enviar mensagem no chat do espaço
+ * @route   POST /api/spaces/:id/messages
+ * @access  Private
+ */
+const sendSpaceMessage = asyncHandler(async (req, res) => {
+  const { message } = req.body;
+  const spaceId = req.params.id;
+  const senderId = req.user._id;
+
+  let imageUrl = null;
+  let fileUrl = null;
+  let fileName = null;
+
+  if (req.files && req.files.photo) {
+    const photo = req.files.photo;
+    const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${photo.name}`);
+    await photo.mv(uploadPath);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    imageUrl = `${baseUrl}/uploads/${path.basename(uploadPath)}`;
+  }
+
+  if (req.files && req.files.file) {
+    const file = req.files.file;
+    const uploadPath = path.join(__dirname, '..', 'uploads', `${Date.now()}_${file.name}`);
+    await file.mv(uploadPath);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    fileUrl = `${baseUrl}/uploads/${path.basename(uploadPath)}`;
+    fileName = file.name;
+  }
+
+  if (!message && !imageUrl && !fileUrl) {
+    res.status(400);
+    throw new Error('A mensagem deve conter texto ou arquivo.');
+  }
+
+  const newMessage = await SpaceMessage.create({
+    space: spaceId,
+    sender: senderId,
+    message,
+    imageUrl,
+    fileUrl,
+    fileName
+  });
+
+  const populatedMessage = await newMessage.populate('sender', 'name avatar');
+  
+  const io = req.app.get('socketio');
+  io.to(spaceId).emit('newChatMessage', { message: populatedMessage.message, user: populatedMessage.sender, fullMessage: populatedMessage });
+
+  res.status(201).json(populatedMessage);
+});
+
+/**
+ * @desc    Excluir um espaço
+ * @route   DELETE /api/spaces/:id
+ * @access  Private
+ */
+const deleteSpace = asyncHandler(async (req, res) => {
+  const space = await Space.findById(req.params.id);
+
+  if (!space) {
+    res.status(404);
+    throw new Error('Espaço não encontrado.');
+  }
+
+  if (space.creator.toString() !== req.user._id.toString()) {
+    res.status(401);
+    throw new Error('Não autorizado. Apenas o criador pode excluir o espaço.');
+  }
+
+  await space.deleteOne();
+  res.json({ id: req.params.id, message: 'Espaço removido com sucesso.' });
+});
+
 module.exports = {
   createSpace,
   getMySpaces,
@@ -249,4 +377,8 @@ module.exports = {
   uploadAudioToSpace,
   getUserSpaces,
   leaveSpace,
+  updateSpaceSettings,
+  getSpaceMessages,
+  deleteSpace,
+  sendSpaceMessage,
 };

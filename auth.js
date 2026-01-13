@@ -14,6 +14,7 @@ export const currentUser = userInfo ? {
     avatar: userInfo.avatar || 'https://i.pravatar.cc/40?img=0', 
     avatarPosX: userInfo.avatarPosX || 50,
     avatarPosY: userInfo.avatarPosY || 50,
+    bannerUrl: userInfo.bannerUrl,
     _id: userInfo._id 
 } : null;
 
