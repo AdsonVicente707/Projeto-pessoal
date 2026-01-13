@@ -1,6 +1,9 @@
+const dotenv = require('dotenv');
+// Carrega as variáveis de ambiente do arquivo .env
+dotenv.config();
+
 const express = require('express');
 const fs = require('fs'); // Necessário para verificar/criar diretórios
-const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const fileUpload = require('express-fileupload');
 const path = require('path');
@@ -22,9 +25,6 @@ const ensureUploadsDir = require('./middleware/ensureUploadsDir');
 const notificationRoutes = require('./routes/notificationRoutes');
 const messageRoutes = require('./routes/messageRoutes'); // Importa as novas rotas
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
-
-// Carrega as variáveis de ambiente do arquivo .env
-dotenv.config();
 
 // Conecta ao banco de dados
 connectDB();
@@ -58,11 +58,6 @@ app.set('socketio', io);
 // Mapa para rastrear usuários online: userId -> socketId
 const onlineUsers = new Map();
 
-// Rota de teste para verificar se o servidor está funcionando
-app.get('/', (req, res) => {
-  res.send('API está rodando...');
-});
-
 // Garante que a pasta de uploads exista fora de 'public' para evitar reloads do frontend
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)){
@@ -71,7 +66,15 @@ if (!fs.existsSync(uploadsDir)){
 
 // Middleware para servir arquivos estáticos da pasta 'public'
 // Esta linha deve vir ANTES das suas rotas de API.
-app.use(express.static(path.join(__dirname, 'public')));
+const publicPath = path.join(__dirname, 'public');
+console.log(`Servindo arquivos do frontend da pasta: ${publicPath}`);
+
+if (!fs.existsSync(path.join(publicPath, 'index.html'))) {
+  console.error("⚠️  ERRO CRÍTICO: O arquivo 'index.html' NÃO foi encontrado na pasta 'backend/public'.");
+  console.error("⚠️  SOLUÇÃO: Mova seus arquivos HTML, CSS e JS da raiz do projeto para dentro de 'backend/public'.");
+}
+
+app.use(express.static(publicPath));
 app.use('/uploads', express.static(uploadsDir)); // Serve os arquivos da pasta uploads na rota /uploads
 
 // Monta as rotas
@@ -150,4 +153,5 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => { // Usa server.listen em vez de app.listen
   console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Acesse o site em: http://localhost:${PORT}`);
 });

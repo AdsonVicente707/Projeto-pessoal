@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
   initProfile();
 
   // Inicializa Socket.io para notificações
-  const socket = window.io('http://localhost:5000', {
+  const socket = window.io('/', {
     auth: {
       token: userInfo.token
     }

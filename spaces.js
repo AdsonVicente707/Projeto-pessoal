@@ -82,7 +82,7 @@ export async function showSpaceDetailView(spaceId) {
         const spacePhotoGrid = document.getElementById('space-photo-grid');
         spacePhotoGrid.innerHTML = '';
         space.photoUrls.forEach(url => {
-            spacePhotoGrid.innerHTML += `<img src="http://localhost:5000${url}" alt="Foto">`;
+            spacePhotoGrid.innerHTML += `<img src="${url}" alt="Foto">`;
         });
 
         // Setup Tabs
@@ -178,7 +178,7 @@ function setupTabs() {
 function initChat(spaceId) {
     if (socket) socket.disconnect();
     // Assumindo que io está global via CDN no index.html
-    socket = window.io('http://localhost:5000', { auth: { token: userInfo.token } });
+    socket = window.io('/', { auth: { token: userInfo.token } });
     socket.emit('joinSpace', spaceId);
     
     const chatWindow = document.getElementById('chat-window');
@@ -214,7 +214,7 @@ async function initSpacePosts(spaceId) {
         div.classList.add('timeline-post');
         div.innerHTML = `
             <div class="post-header"><strong>${post.author.name}</strong></div>
-            ${post.imageUrl ? `<img src="http://localhost:5000${post.imageUrl}">` : ''}
+            ${post.imageUrl ? `<img src="${post.imageUrl}">` : ''}
             <p>${post.text}</p>
         `;
         feed.appendChild(div);

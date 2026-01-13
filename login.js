@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginErrorMessage = document.getElementById('login-error-message');
     const registerErrorMessage = document.getElementById('register-error-message');
 
-    const API_URL = 'http://localhost:5000/api';
+    const API_URL = '/api';
 
     // Alternar entre as telas de login e cadastro
     showRegisterLink.addEventListener('click', (e) => {
