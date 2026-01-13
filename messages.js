@@ -8,6 +8,12 @@ let typingTimeout = null;
 let onlineUsersSet = new Set();
 let currentListData = []; // Armazena os dados da lista atual (conversas ou contatos) para filtro
 let isViewingContacts = false; // Flag para saber qual lista está sendo exibida
+let popupTimeout = null; // Variável para controlar o tempo do popup
+let activeNotificationSenderId = null; // Controle de agrupamento de notificações
+let activeNotificationCount = 0; // Contador de mensagens para agrupamento
+
+// URL do som de notificação (pode ser substituído por um arquivo local './assets/notification.mp3')
+const NOTIFICATION_SOUND_URL = 'https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2354.mp3';
 
 export function initMessages(socketInstance) {
     socket = socketInstance;
@@ -23,18 +29,43 @@ export function initMessages(socketInstance) {
     const previewImg = document.getElementById('msg-preview-img');
     const previewClose = document.getElementById('msg-preview-close');
     
+    // Elementos do Popup
+    const popup = document.getElementById('message-popup');
+    const popupClose = document.getElementById('popup-close');
+    const popupProgress = popup ? popup.querySelector('.popup-progress') : null;
+    
     // --- Configuração do Emoji Picker ---
     const picker = new EmojiButton({
-        position: 'top-start',
-        theme: 'light',
-        autoHide: false
+        position: 'auto',       // Ajuste automático para evitar cortes
+        theme: 'dark',          // Tema escuro permanente
+        autoHide: true,         // Fecha ao clicar fora
+        zIndex: 10000,          // CRÍTICO: Garante que apareça acima do modal (que tem z-index 2000)
+        showPreview: false,     // Remove a prévia grande (opcional, deixa mais limpo)
+        categories: ['smileys', 'people'], // Limita as categorias
+        i18n: {                 // Personalização: Tradução para Português
+            search: 'Pesquisar emojis...',
+            categories: {
+                recents: 'Recentes',
+                smileys: 'Carinhas',
+                people: 'Pessoas',
+                animals: 'Animais',
+                food: 'Comida',
+                activities: 'Atividades',
+                travel: 'Viagens',
+                objects: 'Objetos',
+                symbols: 'Símbolos',
+                flags: 'Bandeiras'
+            },
+            notFound: 'Nenhum emoji encontrado'
+        }
     });
 
     // Cria e insere o botão de emoji dinamicamente
     if (input && !document.getElementById('emoji-btn')) {
         const emojiBtn = document.createElement('button');
         emojiBtn.id = 'emoji-btn';
-        emojiBtn.innerHTML = '😊';
+        emojiBtn.innerHTML = '<i class="far fa-smile"></i>'; // Ícone profissional FontAwesome
+        emojiBtn.title = 'Inserir Emoji';
         emojiBtn.type = 'button'; // Previne submit do form
         input.parentNode.insertBefore(emojiBtn, input); // Insere antes do input
 
@@ -54,6 +85,31 @@ export function initMessages(socketInstance) {
     if (closeBtn) {
         closeBtn.addEventListener('click', () => {
             messagesModal.style.display = 'none';
+        });
+    }
+
+    // Fechar Popup
+    if (popupClose) {
+        popupClose.addEventListener('click', (e) => {
+            e.stopPropagation(); // Impede que o clique no X abra o chat
+            popup.classList.remove('active');
+            setTimeout(() => { popup.style.display = 'none'; }, 300); // Aguarda a transição CSS
+            
+            // Reseta agrupamento
+            activeNotificationSenderId = null;
+            activeNotificationCount = 0;
+        });
+    }
+
+    // Fechar Popup automaticamente ao fim da animação da barra de progresso
+    if (popupProgress) {
+        popupProgress.addEventListener('animationend', () => {
+            popup.classList.remove('active');
+            setTimeout(() => { popup.style.display = 'none'; }, 300);
+            
+            // Reseta agrupamento
+            activeNotificationSenderId = null;
+            activeNotificationCount = 0;
         });
     }
 
@@ -168,7 +224,7 @@ export function initMessages(socketInstance) {
                     }
                     socket.emit('stop_typing', { recipientId: currentChatUserId, senderId: currentUser._id });
                     // Atualiza a lista de conversas para mostrar a última mensagem
-                    loadConversations(); 
+                    updateConversationListInRealTime(msgData);
                 } else {
                     const err = await res.json();
                     console.error('Erro no envio:', err);
@@ -201,6 +257,10 @@ export function initMessages(socketInstance) {
     if (socket) {
         socket.on('new_message', (msg) => {
             console.log('Nova mensagem recebida via socket:', msg);
+            
+            // Tocar som de notificação
+            playNotificationSound();
+
             // Se estiver com o chat aberto com essa pessoa, adiciona a mensagem
             if (currentChatUserId && (msg.sender._id === currentChatUserId || msg.sender === currentChatUserId)) {
                 appendMessage(msg, false);
@@ -208,6 +268,48 @@ export function initMessages(socketInstance) {
                 
                 // Marca como lido imediatamente se o chat estiver aberto
                 socket.emit('mark_as_read', { senderId: msg.sender._id || msg.sender, recipientId: currentUser._id });
+            } else {
+                // Se o chat NÃO estiver aberto ou for de outra pessoa
+                const modal = document.getElementById('messages-modal');
+                
+                // Se o modal estiver fechado, mostra notificação visual
+                if (modal.style.display === 'none') {
+                    // Atualiza Badge
+                    const badge = document.getElementById('msg-badge');
+                    let count = parseInt(badge.innerText) || 0;
+                    count++;
+                    badge.innerText = count > 9 ? '9+' : count;
+                    badge.classList.remove('hidden');
+
+                    // Lógica de Agrupamento de Notificações
+                    const popup = document.getElementById('message-popup');
+                    const isPopupActive = popup && popup.classList.contains('active');
+                    const senderId = msg.sender._id || msg.sender;
+                    let popupBody = msg.body || (msg.imageUrl ? '📷 Enviou uma foto' : '📎 Enviou um arquivo');
+
+                    if (isPopupActive && activeNotificationSenderId === senderId) {
+                        activeNotificationCount++;
+                        popupBody = `${activeNotificationCount} novas mensagens`;
+                    } else {
+                        activeNotificationSenderId = senderId;
+                        activeNotificationCount = 1;
+                    }
+
+                    // Mostra Popup
+                    showPopup(
+                        msg.sender.name,
+                        popupBody,
+                        msg.sender.avatar,
+                        'info', // Tipo: info (azul)
+                        () => {
+                            // Reseta agrupamento ao clicar
+                            activeNotificationSenderId = null;
+                            activeNotificationCount = 0;
+                            openMessagesModal();
+                            loadChat(msg.sender);
+                        }
+                    );
+                }
             }
             
             // Notificação Push se a aba estiver oculta
@@ -218,7 +320,7 @@ export function initMessages(socketInstance) {
                 });
             }
             // Atualiza a lista lateral para mostrar prévia e bolinha de não lido (futuro)
-            loadConversations();
+            updateConversationListInRealTime(msg);
         });
 
         // Lista inicial de usuários online
@@ -245,11 +347,27 @@ export function initMessages(socketInstance) {
                 document.getElementById('typing-indicator').style.display = 'block';
                 scrollToBottom();
             }
+            // Atualiza sidebar
+            const previewDiv = document.getElementById(`preview-${senderId}`);
+            if (previewDiv) {
+                const lastMsg = previewDiv.querySelector('.last-msg');
+                const typing = previewDiv.querySelector('.typing-status');
+                if(lastMsg) lastMsg.style.display = 'none';
+                if(typing) typing.style.display = 'inline';
+            }
         });
 
         socket.on('hide_typing', ({ senderId }) => {
             if (currentChatUserId === senderId) {
                 document.getElementById('typing-indicator').style.display = 'none';
+            }
+            // Atualiza sidebar
+            const previewDiv = document.getElementById(`preview-${senderId}`);
+            if (previewDiv) {
+                const lastMsg = previewDiv.querySelector('.last-msg');
+                const typing = previewDiv.querySelector('.typing-status');
+                if(lastMsg) lastMsg.style.display = 'inline';
+                if(typing) typing.style.display = 'none';
             }
         });
 
@@ -259,7 +377,7 @@ export function initMessages(socketInstance) {
                 const checks = document.querySelectorAll('.msg-check i');
                 checks.forEach(icon => {
                     icon.className = 'fas fa-check-double';
-                    icon.style.color = '#3B82F6'; // Azul
+                    icon.style.color = '#E0EFFF'; // Claro para contraste no fundo azul
                 });
             }
         });
@@ -270,6 +388,11 @@ export async function openMessagesModal() {
     const modal = document.getElementById('messages-modal');
     const searchInput = document.getElementById('msg-search-input');
     modal.style.display = 'flex';
+    
+    // Limpa badge ao abrir
+    document.getElementById('msg-badge').classList.add('hidden');
+    document.getElementById('msg-badge').innerText = '0';
+
     if(searchInput) searchInput.value = ''; // Limpa busca ao abrir
     
     // Carrega conversas por padrão
@@ -345,6 +468,21 @@ function renderList(data) {
     data.forEach(item => {
         const user = isViewingContacts ? item : item.participant;
         const isOnline = onlineUsersSet.has(user._id);
+        const lastMsg = !isViewingContacts && item.lastMessage ? item.lastMessage : null;
+        
+        let previewText = isViewingContacts ? 'Iniciar conversa' : 'Clique para conversar';
+        let timeText = '';
+        
+        if (lastMsg) {
+            const isMe = lastMsg.sender === currentUser._id;
+            const prefix = isMe ? 'Você: ' : '';
+            if (lastMsg.body) previewText = prefix + lastMsg.body;
+            else if (lastMsg.imageUrl) previewText = prefix + '📷 Imagem';
+            else if (lastMsg.fileUrl) previewText = prefix + '📎 Arquivo';
+            
+            const date = new Date(lastMsg.createdAt);
+            timeText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
 
         const div = document.createElement('div');
         div.className = 'conversation-item';
@@ -357,8 +495,14 @@ function renderList(data) {
                 <span class="online-status-dot ${isOnline ? 'online' : ''}"></span>
             </div>
             <div class="convo-info">
-                <strong>${user.name}</strong>
-                <small>${isViewingContacts ? 'Iniciar conversa' : 'Clique para conversar'}</small>
+                <div class="convo-header">
+                    <strong>${user.name}</strong>
+                    <small class="msg-time">${timeText}</small>
+                </div>
+                <div class="convo-preview" id="preview-${user._id}">
+                    <span class="last-msg">${previewText}</span>
+                    <span class="typing-status" style="display:none; color: #10B981; font-style: italic; font-size: 0.9em;">Digitando...</span>
+                </div>
             </div>
         `;
 
@@ -438,11 +582,27 @@ function appendMessage(msg, isMe) {
     }
     if (msg.body) content += `<span>${msg.body}</span>`;
     
-    // Adiciona hora e check de leitura para mensagens enviadas por mim
+    // Formata a hora
+    const time = new Date(msg.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // Adiciona hora e check de leitura
     if (isMe) {
-        const checkColor = msg.read ? '#3B82F6' : '#aaa';
+        // Ajuste de cor para visibilidade no fundo azul: Claro para lido, Transparente para não lido
+        const checkColor = msg.read ? '#E0EFFF' : 'rgba(255,255,255,0.6)';
         const checkIcon = msg.read ? 'fas fa-check-double' : 'fas fa-check';
-        content += `<span class="msg-check" style="margin-left: 8px; font-size: 0.7em;"><i class="${checkIcon}" style="color: ${checkColor}"></i></span>`;
+        
+        content += `
+            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 5px; margin-top: 4px;">
+                <small style="font-size: 0.7em; opacity: 0.8;">${time}</small>
+                <span class="msg-check" style="font-size: 0.7em;">
+                    <i class="${checkIcon}" style="color: ${checkColor}"></i>
+                </span>
+            </div>`;
+    } else {
+        content += `
+            <div style="display: flex; align-items: center; justify-content: flex-start; margin-top: 4px;">
+                <small style="font-size: 0.7em; opacity: 0.8;">${time}</small>
+            </div>`;
     }
 
     div.innerHTML = content;
@@ -498,4 +658,109 @@ function formatLastSeen(dateString) {
     
     if (isToday) return `Hoje às ${time}`;
     return `${date.toLocaleDateString()} às ${time}`;
+}
+
+function playNotificationSound() {
+    const audio = new Audio(NOTIFICATION_SOUND_URL);
+    audio.volume = 0.5; // Volume em 50%
+    audio.play().catch(err => console.warn('Reprodução de som bloqueada pelo navegador (interação necessária):', err));
+}
+
+/**
+ * Exibe o popup de notificação com contexto visual
+ * @param {string} title - Título (ex: Nome do remetente)
+ * @param {string} body - Mensagem
+ * @param {string} image - URL do avatar/ícone
+ * @param {string} type - 'info' (azul), 'success' (verde), 'error' (vermelho)
+ * @param {Function} onClick - Callback ao clicar no popup
+ */
+export function showPopup(title, body, image, type = 'info', onClick = null) {
+    const popup = document.getElementById('message-popup');
+    if (!popup) return;
+
+    const popupSender = document.getElementById('popup-sender-name');
+    const popupBody = document.getElementById('popup-message-preview');
+    const popupAvatar = document.getElementById('popup-avatar');
+    const popupProgress = popup.querySelector('.popup-progress');
+
+    if (popupSender) popupSender.innerText = title;
+    if (popupBody) popupBody.innerText = body;
+    if (popupAvatar) popupAvatar.src = image;
+
+    // Aplica a classe de contexto na barra de progresso
+    if (popupProgress) {
+        popupProgress.className = 'popup-progress'; // Reseta classes anteriores
+        popupProgress.classList.add(type);
+    }
+
+    popup.classList.remove('active');
+    popup.style.display = 'flex';
+    
+    // Força reflow para reiniciar animação
+    void popup.offsetWidth; 
+    
+    popup.classList.add('active');
+
+    popup.onclick = () => {
+        popup.classList.remove('active');
+        setTimeout(() => { popup.style.display = 'none'; }, 300);
+        if (onClick) onClick();
+    };
+}
+
+/**
+ * Atualiza a lista de conversas em tempo real:
+ * Move a conversa para o topo e atualiza a prévia da mensagem.
+ */
+function updateConversationListInRealTime(msg) {
+    const listContainer = document.getElementById('conversations-list-container');
+    if (!listContainer) return;
+
+    // Identifica o ID do outro usuário (seja sender ou recipient)
+    // msg.sender é um objeto populado, msg.recipient é um ID
+    const senderId = msg.sender._id || msg.sender;
+    const otherUserId = senderId === currentUser._id ? msg.recipient : senderId;
+    
+    // Procura o elemento da conversa na lista
+    const conversationItem = listContainer.querySelector(`.conversation-item[data-user-id="${otherUserId}"]`);
+
+    if (conversationItem) {
+        // 1. Atualiza o texto da última mensagem
+        const lastMsgEl = conversationItem.querySelector('.last-msg');
+        const timeEl = conversationItem.querySelector('.msg-time');
+        
+        let previewText = '';
+        const isMe = senderId === currentUser._id;
+        const prefix = isMe ? 'Você: ' : '';
+        
+        if (msg.body) previewText = prefix + msg.body;
+        else if (msg.imageUrl) previewText = prefix + '📷 Imagem';
+        else if (msg.fileUrl) previewText = prefix + '📎 Arquivo';
+        
+        if (lastMsgEl) lastMsgEl.innerText = previewText;
+        
+        // 2. Atualiza a hora
+        const date = new Date(msg.createdAt || Date.now());
+        const timeText = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        if (timeEl) timeEl.innerText = timeText;
+
+        // 3. Move para o topo da lista visualmente
+        listContainer.prepend(conversationItem);
+
+        // 4. Atualiza o cache de dados (para que filtros de busca funcionem corretamente)
+        if (typeof currentListData !== 'undefined' && Array.isArray(currentListData)) {
+            const convoIndex = currentListData.findIndex(c => c.participant && c.participant._id === otherUserId);
+            if (convoIndex > -1) {
+                const convo = currentListData[convoIndex];
+                convo.lastMessage = msg;
+                convo.updatedAt = msg.createdAt;
+                // Move para o início do array
+                currentListData.splice(convoIndex, 1);
+                currentListData.unshift(convo);
+            }
+        }
+    } else {
+        // Se a conversa não existir na lista (ex: nova conversa iniciada por outro), recarrega tudo do servidor
+        loadConversations();
+    }
 }

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginErrorMessage = document.getElementById('login-error-message');
     const registerErrorMessage = document.getElementById('register-error-message');
 
-    const API_URL = '/api';
+    const API_URL = 'http://localhost:5000/api';
 
     // Alternar entre as telas de login e cadastro
     showRegisterLink.addEventListener('click', (e) => {
@@ -37,7 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ email, password }),
             });
 
-            const data = await res.json();
+            let data;
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                // Se não for JSON, lança um erro com o texto recebido ou status
+                throw new Error(text || `Erro do servidor: ${res.status} ${res.statusText}`);
+            }
 
             if (!res.ok) {
                 throw new Error(data.message || 'Algo deu errado');
@@ -67,7 +75,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ name, email, password }),
             });
 
-            const data = await res.json();
+            let data;
+            const contentType = res.headers.get("content-type");
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                data = await res.json();
+            } else {
+                const text = await res.text();
+                throw new Error(text || `Erro do servidor: ${res.status} ${res.statusText}`);
+            }
 
             if (!res.ok) {
                 throw new Error(data.message || 'Algo deu errado');

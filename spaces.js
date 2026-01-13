@@ -178,7 +178,7 @@ function setupTabs() {
 function initChat(spaceId) {
     if (socket) socket.disconnect();
     // Assumindo que io está global via CDN no index.html
-    socket = window.io('/', { auth: { token: userInfo.token } });
+    socket = window.io('http://localhost:5000', { auth: { token: userInfo.token } });
     socket.emit('joinSpace', spaceId);
     
     const chatWindow = document.getElementById('chat-window');

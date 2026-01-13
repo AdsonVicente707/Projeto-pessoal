@@ -22,13 +22,28 @@ document.addEventListener('DOMContentLoaded', function() {
   const spaceDetailPage = document.getElementById('space-detail-page');
   const invitationsPage = document.getElementById('invitations-page');
 
+  // Inicializa Top Bar Profile
+  if (currentUser) {
+    const topName = document.getElementById('top-profile-name');
+    const topAvatar = document.getElementById('top-profile-avatar');
+    if (topName) topName.innerText = currentUser.name;
+    if (topAvatar) {
+        topAvatar.src = currentUser.avatar;
+        topAvatar.style.objectPosition = `${currentUser.avatarPosX || 50}% ${currentUser.avatarPosY || 50}%`;
+    }
+    const topTrigger = document.getElementById('top-profile-trigger');
+    if (topTrigger) {
+        topTrigger.addEventListener('click', () => showProfileView(currentUser));
+    }
+  }
+
   // Inicializa Módulos
   initTimeline();
   initSpaces();
   initProfile();
 
   // Inicializa Socket.io para notificações
-  const socket = window.io('/', {
+  const socket = window.io('http://localhost:5000', {
     auth: {
       token: userInfo.token
     }

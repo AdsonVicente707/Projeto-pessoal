@@ -35,7 +35,7 @@
         <li><i class="fas fa-hashtag"></i> Explorar</li>
         <li><i class="fas fa-users"></i> Espaços</li>
         <li><i class="fas fa-envelope-open-text"></i> Convites</li>
-        <li><i class="fas fa-envelope"></i> Mensagens</li>
+        <li id="menu-messages-btn" style="position: relative;"><i class="fas fa-envelope"></i> Mensagens <span id="msg-badge" class="notification-dot hidden" style="top: 15px; right: 15px;">0</span></li>
         <li><i class="fas fa-user"></i> Perfil</li>
         <li id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</li>
       </ul>
@@ -43,6 +43,13 @@
   </aside>
 
   <main class="main-content">
+    <div class="top-bar">
+      <div class="user-profile-summary" id="top-profile-trigger">
+        <span id="top-profile-name"></span>
+        <img id="top-profile-avatar" class="avatar" src="" alt="Perfil">
+      </div>
+    </div>
+
     <section class="create-post">
       <h3>Criar nova publicação</h3>
       <textarea id="post-text" placeholder="O que está acontecendo?"></textarea>
@@ -275,6 +282,21 @@
         </div>
       </div>
     </div>
+  </div>
+
+  <!-- Popup de Nova Mensagem -->
+  <div id="message-popup" class="message-popup" style="display: none;">
+    <div class="popup-content">
+      <img id="popup-avatar" src="" alt="Avatar" class="popup-avatar">
+      <div class="popup-text-info">
+        <div class="popup-header">
+          <strong id="popup-sender-name">Nova Mensagem</strong>
+          <span id="popup-close">&times;</span>
+        </div>
+        <div class="popup-body" id="popup-message-preview"></div>
+      </div>
+    </div>
+    <div class="popup-progress"></div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>

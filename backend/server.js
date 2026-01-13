@@ -66,14 +66,18 @@ if (!fs.existsSync(uploadsDir)){
 // Middleware para servir arquivos estáticos da pasta 'public'
 // Esta linha deve vir ANTES das suas rotas de API.
 const publicPath = path.join(__dirname, 'public');
-console.log(`Servindo arquivos do frontend da pasta: ${publicPath}`);
+const rootPath = path.join(__dirname, '../');
+let staticDir = publicPath;
 
-if (!fs.existsSync(path.join(publicPath, 'index.html'))) {
-  console.error("⚠️  ERRO CRÍTICO: O arquivo 'index.html' NÃO foi encontrado na pasta 'backend/public'.");
-  console.error("⚠️  SOLUÇÃO: Mova seus arquivos HTML, CSS e JS da raiz do projeto para dentro de 'backend/public'.");
+// Verifica se o frontend está na pasta public, caso contrário serve da raiz (fallback)
+if (!fs.existsSync(path.join(publicPath, 'index.html')) && fs.existsSync(path.join(rootPath, 'index.html'))) {
+  console.log(`ℹ️  Frontend servido da raiz (Modo Dev). Para produção, mova arquivos para 'backend/public'.`);
+  staticDir = rootPath;
+} else {
+  console.log(`Servindo arquivos do frontend da pasta: ${publicPath}`);
 }
 
-app.use(express.static(publicPath));
+app.use(express.static(staticDir));
 app.use('/uploads', express.static(uploadsDir)); // Serve os arquivos da pasta uploads na rota /uploads
 
 // Monta as rotas

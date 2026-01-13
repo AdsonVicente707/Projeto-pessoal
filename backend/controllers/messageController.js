@@ -17,19 +17,32 @@ const getConversations = asyncHandler(async (req, res) => {
     select: 'name avatar lastSeen',
     // Filtra o próprio usuário da lista de participantes para mostrar apenas o outro
     match: { _id: { $ne: req.user._id } },
-  });
+  }).sort({ updatedAt: -1 }); // Ordena pela conversa mais recente
 
   // O populate com 'match' retorna um array com um único participante (o outro).
   // Vamos reformatar para ser mais fácil de usar no frontend.
-  const formattedConversations = conversations.map(conv => {
+  const formattedConversations = await Promise.all(conversations.map(async conv => {
+    const participant = conv.participants[0];
+    if (!participant) return null;
+
+    // Busca a última mensagem desta conversa
+    const lastMessage = await Message.findOne({
+      $or: [
+        { sender: req.user._id, recipient: participant._id },
+        { sender: participant._id, recipient: req.user._id }
+      ]
+    }).sort({ createdAt: -1 });
+
     return {
       _id: conv._id,
-      participant: conv.participants[0],
-      updatedAt: conv.updatedAt
+      participant: participant,
+      updatedAt: conv.updatedAt,
+      lastMessage: lastMessage
     };
-  });
+  }));
 
-  res.json(formattedConversations);
+  // Filtra nulos (caso haja inconsistência de dados)
+  res.json(formattedConversations.filter(c => c !== null));
 });
 
 /**

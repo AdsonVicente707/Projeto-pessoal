@@ -17,7 +17,7 @@ document.getElementById('register-form').addEventListener('submit', async functi
         submitButton.textContent = 'Criando conta...';
 
         // Conecta com o Backend (Ajuste a porta 5000 se necessário)
-        const response = await fetch('/api/users/register', {
+        const response = await fetch('http://localhost:5000/api/users/register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -25,7 +25,14 @@ document.getElementById('register-form').addEventListener('submit', async functi
             body: JSON.stringify({ name, email, password })
         });
 
-        const data = await response.json();
+        let data;
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            throw new Error(text || `Erro do servidor: ${response.status} ${response.statusText}`);
+        }
 
         if (response.ok) {
             // Sucesso: Salva os dados do usuário (token) no navegador
