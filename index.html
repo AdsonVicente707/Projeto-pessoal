@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Projeto Social</title>
-  
+
   <!-- Fontes do Google -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +20,7 @@
   <!-- Sua Folha de Estilo -->
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
   <aside class="sidebar">
@@ -35,7 +37,8 @@
         <li><i class="fas fa-hashtag"></i> Explorar</li>
         <li><i class="fas fa-users"></i> Espaços</li>
         <li><i class="fas fa-envelope-open-text"></i> Convites</li>
-        <li id="menu-messages-btn" style="position: relative;"><i class="fas fa-envelope"></i> Mensagens <span id="msg-badge" class="notification-dot hidden" style="top: 15px; right: 15px;">0</span></li>
+        <li id="menu-messages-btn" style="position: relative;"><i class="fas fa-envelope"></i> Mensagens <span
+            id="msg-badge" class="notification-dot hidden" style="top: 15px; right: 15px;">0</span></li>
         <li><i class="fas fa-user"></i> Perfil</li>
         <li><i class="fas fa-cog"></i> Configurações</li>
         <li id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</li>
@@ -61,6 +64,13 @@
       </div>
     </section>
 
+    <!-- Stories Section -->
+    <section class="stories-container" id="stories-section">
+      <div class="stories-scroll" id="stories-scroll">
+        <!-- Stories will be rendered here by JavaScript -->
+      </div>
+    </section>
+
     <section class="timeline" id="timeline-feed">
       <!-- Os posts serão renderizados aqui pelo JavaScript -->
     </section>
@@ -70,12 +80,15 @@
       <div class="profile-banner-wrapper">
         <img id="profile-banner-display" src="" alt="Capa do Perfil" onerror="this.style.display='none'">
       </div>
-      
+
       <div class="profile-header-section">
         <div class="profile-image-container">
           <div style="position: relative; display: inline-block;">
             <img src="" alt="Avatar do Perfil" class="avatar" id="profile-avatar">
-            <div id="profile-avatar-edit-overlay" style="display: none; position: absolute; bottom: 0; right: 0; background: white; border-radius: 50%; padding: 5px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);"><i class="fas fa-camera" style="color: #333;"></i></div>
+            <div id="profile-avatar-edit-overlay"
+              style="display: none; position: absolute; bottom: 0; right: 0; background: white; border-radius: 50%; padding: 5px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+              <i class="fas fa-camera" style="color: #333;"></i>
+            </div>
           </div>
           <input type="file" id="profile-avatar-input" accept="image/*" style="display: none;">
         </div>
@@ -92,7 +105,8 @@
 
       <div class="profile-tabs">
         <button class="profile-tab-btn active" data-target="profile-posts-feed">Posts Públicos</button>
-        <button class="profile-tab-btn" id="family-memories-tab" data-target="family-memories-feed" style="display: none;"><i class="fas fa-lock"></i> Memórias de Família</button>
+        <button class="profile-tab-btn" id="family-memories-tab" data-target="family-memories-feed"
+          style="display: none;"><i class="fas fa-lock"></i> Memórias de Família</button>
       </div>
 
       <div id="profile-created-spaces"></div>
@@ -108,13 +122,75 @@
 
     <!-- Seção da Página Explorar (escondida por padrão) -->
     <section class="explore-page" id="explore-page">
-      <h2>Encontrar Pessoas</h2>
-      <div class="user-search-container">
-        <input type="text" id="user-search-input" placeholder="Digite o nome de alguém...">
-        <button id="user-search-button"><i class="fas fa-search"></i> Buscar</button>
+      <div class="explore-header">
+        <div class="explore-search-container">
+          <i class="fas fa-search explore-search-icon"></i>
+          <input type="text" id="explore-search-input" class="explore-search-input"
+            placeholder="Buscar pessoas, posts...">
+        </div>
+
+        <div class="explore-tabs">
+          <button class="explore-tab active" data-tab="all">
+            <i class="fas fa-th"></i> Tudo
+          </button>
+          <button class="explore-tab" data-tab="people">
+            <i class="fas fa-users"></i> Pessoas
+          </button>
+          <button class="explore-tab" data-tab="posts">
+            <i class="fas fa-images"></i> Posts
+          </button>
+          <button class="explore-tab" data-tab="spaces">
+            <i class="fas fa-home"></i> Espaços
+          </button>
+        </div>
+
+        <div class="explore-filters" id="explore-filters">
+          <button class="filter-chip active" data-filter="all">
+            <i class="fas fa-globe"></i> Todos
+          </button>
+          <button class="filter-chip" data-filter="family">
+            <i class="fas fa-heart"></i> Família
+          </button>
+          <button class="filter-chip" data-filter="friends">
+            <i class="fas fa-user-friends"></i> Amigos
+          </button>
+          <button class="filter-chip" data-filter="recent">
+            <i class="fas fa-clock"></i> Recentes
+          </button>
+          <button class="filter-chip" data-filter="popular">
+            <i class="fas fa-fire"></i> Populares
+          </button>
+        </div>
       </div>
-      <div class="user-search-results" id="user-search-results">
-        <!-- Resultados da busca de usuários serão inseridos aqui -->
+
+      <!-- Suggested Users Section -->
+      <div class="suggested-users-section" id="suggested-users-section">
+        <div class="suggested-users-header">
+          <h3>Sugestões para você</h3>
+          <button class="see-all-btn" id="see-all-suggestions">Ver tudo</button>
+        </div>
+        <div class="suggested-users-scroll" id="suggested-users-scroll">
+          <!-- Suggested users will be rendered here -->
+        </div>
+      </div>
+
+      <!-- Explore Grid -->
+      <div class="explore-grid" id="explore-grid">
+        <!-- Grid items will be rendered here -->
+      </div>
+
+      <!-- Loading State -->
+      <div class="explore-loading" id="explore-loading" style="display: none;">
+        <div class="loading-spinner">
+          <div class="spinner-circle"></div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="explore-empty" id="explore-empty" style="display: none;">
+        <i class="fas fa-search"></i>
+        <h3>Nenhum resultado encontrado</h3>
+        <p>Tente ajustar seus filtros ou buscar por algo diferente</p>
       </div>
     </section>
 
@@ -130,9 +206,10 @@
     <section class="space-detail-page" id="space-detail-page">
       <div class="space-banner-container">
         <div id="space-banner" class="space-banner"></div>
-        <button id="space-settings-btn" class="space-settings-btn" style="display: none;" title="Configurações do Espaço"><i class="fas fa-cog"></i></button>
+        <button id="space-settings-btn" class="space-settings-btn" style="display: none;"
+          title="Configurações do Espaço"><i class="fas fa-cog"></i></button>
       </div>
-      
+
       <div class="space-header-content">
         <button id="back-to-spaces-button">&larr; Voltar</button>
         <h2 id="space-detail-name"></h2>
@@ -163,7 +240,8 @@
           <!-- Mensagens do chat serão inseridas aqui -->
         </div>
         <div class="space-chat-input-area" id="space-chat-input-area">
-          <button class="space-chat-actions-btn" id="space-chat-image-btn" title="Enviar Imagem"><i class="fas fa-image"></i></button>
+          <button class="space-chat-actions-btn" id="space-chat-image-btn" title="Enviar Imagem"><i
+              class="fas fa-image"></i></button>
           <input type="file" id="space-chat-image-input" accept="image/*" style="display: none;">
           <input type="text" id="space-chat-message-input" placeholder="Digite sua mensagem..." autocomplete="off">
           <button class="space-chat-send-btn" id="space-chat-send-btn"><i class="fas fa-paper-plane"></i></button>
@@ -199,7 +277,7 @@
     <!-- Seção da Página de Convites (escondida por padrão) -->
     <section class="invitations-page" id="invitations-page">
       <h2>Meus Convites Pendentes</h2>
-      
+
       <h3>Convites para Espaços</h3>
       <div id="space-invitations-list">
         <!-- Convites de espaços serão renderizados aqui -->
@@ -232,7 +310,7 @@
                 </label>
               </div>
             </div>
-            
+
             <div class="setting-item">
               <label>Banner do Perfil</label>
               <p class="setting-desc">Essa imagem aparecerá no topo do seu perfil público.</p>
@@ -254,24 +332,32 @@
   </main>
 
   <!-- Modal de Recorte de Imagem -->
-  <div id="crop-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column;">
-    <div style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; display: flex; flex-direction: column; align-items: center;">
+  <div id="crop-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column;">
+    <div
+      style="background: white; padding: 20px; border-radius: 8px; max-width: 90%; max-height: 90%; display: flex; flex-direction: column; align-items: center;">
       <h3 style="margin-bottom: 15px;">Ajuste sua foto</h3>
       <div style="max-width: 500px; max-height: 400px; overflow: hidden; background: #f0f0f0;">
         <img id="crop-image" style="max-width: 100%; display: block;">
       </div>
       <div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button id="crop-cancel-btn" style="padding: 8px 16px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
-        <button id="crop-save-btn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar Corte</button>
+        <button id="crop-cancel-btn"
+          style="padding: 8px 16px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+        <button id="crop-save-btn"
+          style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar
+          Corte</button>
       </div>
     </div>
   </div>
 
   <!-- Modal de Ajuste de Posição -->
-  <div id="position-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column;">
-    <div style="background: white; padding: 20px; border-radius: 8px; width: 300px; display: flex; flex-direction: column; align-items: center;">
+  <div id="position-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; flex-direction: column;">
+    <div
+      style="background: white; padding: 20px; border-radius: 8px; width: 300px; display: flex; flex-direction: column; align-items: center;">
       <h3 style="margin-bottom: 15px;">Ajustar Posição</h3>
-      <div style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin-bottom: 20px; border: 2px solid #ddd;">
+      <div
+        style="width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin-bottom: 20px; border: 2px solid #ddd;">
         <img id="position-preview-image" style="width: 100%; height: 100%; object-fit: cover;">
       </div>
       <div style="width: 100%; margin-bottom: 10px;">
@@ -283,16 +369,21 @@
         <input type="range" id="pos-y" min="0" max="100" value="50" style="width: 100%;">
       </div>
       <div style="display: flex; gap: 10px;">
-        <button id="pos-cancel-btn" style="padding: 8px 16px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
-        <button id="pos-save-btn" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
+        <button id="pos-cancel-btn"
+          style="padding: 8px 16px; background: #ccc; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+        <button id="pos-save-btn"
+          style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Salvar</button>
       </div>
     </div>
   </div>
 
   <!-- Modal de Seguindo -->
-  <div id="connections-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; max-height: 80%; display: flex; flex-direction: column; position: relative;">
-      <span id="close-connections-modal" style="position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer;">&times;</span>
+  <div id="connections-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+    <div
+      style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; max-height: 80%; display: flex; flex-direction: column; position: relative;">
+      <span id="close-connections-modal"
+        style="position: absolute; top: 10px; right: 15px; font-size: 1.5rem; cursor: pointer;">&times;</span>
       <h3 style="margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Seguindo</h3>
       <div id="connections-list" style="overflow-y: auto; flex-grow: 1;">
         <!-- Lista de usuários será inserida aqui -->
@@ -301,15 +392,18 @@
   </div>
 
   <!-- Modal de Mensagens (Estilo Direct) -->
-  <div id="messages-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+  <div id="messages-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
     <div class="messages-modal-content">
       <div class="messages-sidebar">
         <div class="messages-header">
           <h3>Mensagens</h3>
-          <i class="fas fa-edit" id="new-msg-btn" title="Nova Conversa" style="cursor: pointer; color: #3B82F6; font-size: 1.2rem;"></i>
+          <i class="fas fa-edit" id="new-msg-btn" title="Nova Conversa"
+            style="cursor: pointer; color: #3B82F6; font-size: 1.2rem;"></i>
         </div>
         <div class="msg-search-bar" style="padding: 10px 20px; border-bottom: 1px solid #dbdbdb;">
-          <input type="text" id="msg-search-input" placeholder="Buscar pessoas ou conversas..." style="width: 100%; padding: 8px; border: 1px solid #dbdbdb; border-radius: 6px;">
+          <input type="text" id="msg-search-input" placeholder="Buscar pessoas ou conversas..."
+            style="width: 100%; padding: 8px; border: 1px solid #dbdbdb; border-radius: 6px;">
         </div>
         <div id="conversations-list-container" class="conversations-list">
           <!-- Lista de conversas -->
@@ -322,13 +416,16 @@
           <span id="close-messages-modal" style="cursor: pointer; margin-left: auto; font-size: 1.5rem;">&times;</span>
         </div>
         <div id="msg-feed" class="chat-feed"></div>
-        <div id="typing-indicator" style="display: none; padding: 5px 20px; color: #888; font-size: 0.8em; font-style: italic;">Digitando...</div>
+        <div id="typing-indicator"
+          style="display: none; padding: 5px 20px; color: #888; font-size: 0.8em; font-style: italic;">Digitando...
+        </div>
         <div id="msg-preview-container" style="display: none;">
           <img id="msg-preview-img" src="">
           <button id="msg-preview-close" type="button">&times;</button>
         </div>
         <div class="msg-input-area" style="display: none;">
-          <i class="fas fa-image" id="msg-image-btn" title="Enviar Imagem" style="font-size: 1.5rem; color: #3B82F6; cursor: pointer;"></i>
+          <i class="fas fa-image" id="msg-image-btn" title="Enviar Imagem"
+            style="font-size: 1.5rem; color: #3B82F6; cursor: pointer;"></i>
           <input type="file" id="msg-image-input" accept="image/*" style="display: none;">
           <input type="text" id="msg-input" placeholder="Escreva uma mensagem...">
           <button id="msg-send-btn" type="button"><i class="fas fa-paper-plane"></i></button>
@@ -353,44 +450,54 @@
   </div>
 
   <!-- Modal de Configurações do Espaço -->
-  <div id="space-settings-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: var(--bg-surface); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+  <div id="space-settings-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+    <div
+      style="background: var(--bg-surface); padding: 25px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
       <h3 style="margin-top: 0; color: var(--text-main);">Personalizar Espaço</h3>
-      
+
       <div style="margin-bottom: 15px;">
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nome do Espaço</label>
-        <input type="text" id="edit-space-name" style="width: 100%; padding: 10px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--text-main);">
+        <input type="text" id="edit-space-name"
+          style="width: 100%; padding: 10px; border: 1px solid var(--input-border); border-radius: 6px; background: var(--input-bg); color: var(--text-main);">
       </div>
 
       <div style="margin-bottom: 20px;">
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Fundo do Espaço</label>
-        <p style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">Escolha uma cor ou envie uma imagem.</p>
-        <input type="color" id="edit-space-color" value="#3B82F6" style="width: 100%; height: 40px; cursor: pointer; border: none; padding: 0;">
+        <p style="font-size: 0.85em; color: var(--text-secondary); margin-bottom: 10px;">Escolha uma cor ou envie uma
+          imagem.</p>
+        <input type="color" id="edit-space-color" value="#3B82F6"
+          style="width: 100%; height: 40px; cursor: pointer; border: none; padding: 0;">
         <div style="margin-top: 10px; text-align: center;">ou</div>
         <input type="file" id="edit-space-image" accept="image/*" style="margin-top: 10px; width: 100%;">
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button id="cancel-space-settings" style="padding: 8px 16px; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; cursor: pointer;">Cancelar</button>
-        <button id="save-space-settings" style="padding: 8px 16px; background: #3B82F6; color: white; border: none; border-radius: 6px; cursor: pointer;">Salvar Alterações</button>
+        <button id="cancel-space-settings"
+          style="padding: 8px 16px; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; cursor: pointer;">Cancelar</button>
+        <button id="save-space-settings"
+          style="padding: 8px 16px; background: #3B82F6; color: white; border: none; border-radius: 6px; cursor: pointer;">Salvar
+          Alterações</button>
       </div>
     </div>
   </div>
 
   <!-- Modal de Confirmação de Exclusão de Espaço -->
-  <div id="delete-space-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; flex-direction: column;">
+  <div id="delete-space-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center; flex-direction: column;">
     <div class="delete-modal-content">
       <div class="delete-icon-animation">
         <i class="fas fa-trash-alt"></i>
       </div>
       <h3>Realmente deseja apagar essas memórias?</h3>
-      <p style="color: var(--text-secondary); margin-bottom: 20px;">Esta ação é irreversível. Todas as fotos, mensagens e áudios deste espaço serão perdidos para sempre.</p>
-      
+      <p style="color: var(--text-secondary); margin-bottom: 20px;">Esta ação é irreversível. Todas as fotos, mensagens
+        e áudios deste espaço serão perdidos para sempre.</p>
+
       <label class="delete-confirmation-checkbox">
         <input type="checkbox" id="confirm-delete-checkbox">
         Estou ciente e quero excluir este espaço.
       </label>
-      
+
       <div class="delete-modal-actions">
         <button id="cancel-delete-btn">Cancelar</button>
         <button id="confirm-delete-btn" disabled>Apagar Espaço</button>
@@ -399,38 +506,53 @@
   </div>
 
   <!-- Modal de Criação de Espaço (Novo Design) -->
-  <div id="create-space-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
-    <div style="background: var(--bg-surface); padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;">
+  <div id="create-space-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center;">
+    <div
+      style="background: var(--bg-surface); padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: popIn 0.3s ease-out;">
       <h3 style="margin-top: 0; color: var(--text-main); text-align: center; margin-bottom: 20px;">Novo Espaço</h3>
-      
+
       <div style="margin-bottom: 20px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Nome do Espaço</label>
-        <input type="text" id="new-space-name" placeholder="Ex: Família Silva" style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-size: 1rem;">
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Nome do
+          Espaço</label>
+        <input type="text" id="new-space-name" placeholder="Ex: Família Silva"
+          style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main); font-size: 1rem;">
       </div>
 
       <div style="margin-bottom: 25px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Cor de Capa</label>
+        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main);">Cor de
+          Capa</label>
         <div style="display: flex; gap: 10px; align-items: center;">
-           <input type="color" id="new-space-color" value="#3B82F6" style="width: 60px; height: 40px; cursor: pointer; border: none; padding: 0; border-radius: 6px;">
-           <span style="color: var(--text-secondary); font-size: 0.9em;">Escolha uma cor para identificar o espaço.</span>
+          <input type="color" id="new-space-color" value="#3B82F6"
+            style="width: 60px; height: 40px; cursor: pointer; border: none; padding: 0; border-radius: 6px;">
+          <span style="color: var(--text-secondary); font-size: 0.9em;">Escolha uma cor para identificar o
+            espaço.</span>
         </div>
       </div>
 
       <div style="display: flex; justify-content: flex-end; gap: 10px;">
-        <button id="cancel-create-space" style="padding: 10px 20px; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
-        <button id="confirm-create-space" style="padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);">Criar Espaço</button>
+        <button id="cancel-create-space"
+          style="padding: 10px 20px; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+        <button id="confirm-create-space"
+          style="padding: 10px 20px; background: #3B82F6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 5px rgba(59, 130, 246, 0.3);">Criar
+          Espaço</button>
       </div>
     </div>
   </div>
 
   <!-- Lightbox para Mural de Fotos -->
-  <div id="lightbox-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center;">
-    <span id="lightbox-close" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer;">&times;</span>
-    <img id="lightbox-img" src="" style="max-width: 90%; max-height: 90%; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+  <div id="lightbox-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center;">
+    <span id="lightbox-close"
+      style="position: absolute; top: 20px; right: 30px; color: white; font-size: 2rem; cursor: pointer;">&times;</span>
+    <img id="lightbox-img" src=""
+      style="max-width: 90%; max-height: 90%; border-radius: 4px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  <script src="components.js"></script>
   <script type="module" src="script.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </body>
+
 </html>

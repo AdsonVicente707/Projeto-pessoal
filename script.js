@@ -4,19 +4,22 @@ import { showProfileView, initProfile } from './profile.js';
 import { initSpaces, showSpacesView } from './spaces.js';
 import { API_URL, getAuthHeaders, getUploadHeaders } from './api.js';
 import { initMessages, openMessagesModal } from './messages.js';
+import { initStories } from './stories.js';
+import { initExplore, showExploreView } from './explore.js';
+import { loadActiveTheme } from './themes.js';
 
 // Verifica autenticação antes de tudo
 if (!checkAuth()) {
-    throw new Error("Redirecionando para login...");
+  throw new Error("Redirecionando para login...");
 }
 
 // --- APLICAÇÃO IMEDIATA DO TEMA (Evita flash de luz) ---
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme === 'dark') {
-    document.body.classList.add('dark-mode');
+  document.body.classList.add('dark-mode');
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   // Elementos da UI
   const menuItems = document.querySelectorAll('.sidebar nav li');
   const logoutButton = document.getElementById('logout-button');
@@ -35,22 +38,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const topAvatar = document.getElementById('top-profile-avatar');
     if (topName) topName.innerText = currentUser.name;
     if (topAvatar) {
-        topAvatar.src = currentUser.avatar;
-        topAvatar.style.objectPosition = `${currentUser.avatarPosX || 50}% ${currentUser.avatarPosY || 50}%`;
+      topAvatar.src = currentUser.avatar;
+      topAvatar.style.objectPosition = `${currentUser.avatarPosX || 50}% ${currentUser.avatarPosY || 50}%`;
     }
     const topTrigger = document.getElementById('top-profile-trigger');
     if (topTrigger) {
-        topTrigger.addEventListener('click', () => showProfileView(currentUser));
+      topTrigger.addEventListener('click', () => showProfileView(currentUser));
     }
 
     // --- APLICAÇÃO DE PREFERÊNCIAS VISUAIS ---
     // 1. Fundo do Chat
     if (currentUser.chatBackground) {
-        const chatArea = document.getElementById('msg-chat-area');
-        if (chatArea) chatArea.style.backgroundImage = `url('${currentUser.chatBackground}')`;
+      const chatArea = document.getElementById('msg-chat-area');
+      if (chatArea) chatArea.style.backgroundImage = `url('${currentUser.chatBackground}')`;
     }
     // 2. Banner do Perfil (será aplicado no showProfileView, mas podemos pré-carregar se quiser)
-    
+
     initSettings(); // Inicializa lógica da página de configurações
   }
 
@@ -73,6 +76,36 @@ document.addEventListener('DOMContentLoaded', function() {
   // Inicializa o módulo de mensagens passando o socket
   initMessages(socket);
   initSpaces(socket); // Passa o socket para os espaços também
+  initStories(); // Inicializa Stories
+  initExplore(); // Inicializa Explore
+
+  // Load active theme
+  loadActiveTheme();
+
+  // Add admin panel link if user is admin
+  console.log('Current user role:', currentUser?.role); // Debug
+  if (currentUser && currentUser.role === 'admin') {
+    console.log('Adding admin panel link...'); // Debug
+    const sidebarNav = document.querySelector('.sidebar nav ul');
+    if (sidebarNav) {
+      const adminLink = document.createElement('li');
+      adminLink.innerHTML = '<a href="/admin.html"><i class="fas fa-shield-alt"></i> Painel Admin</a>';
+      // Insert before "Configurações" (second to last item)
+      const configItem = Array.from(sidebarNav.children).find(li =>
+        li.textContent.includes('Configurações')
+      );
+      if (configItem) {
+        sidebarNav.insertBefore(adminLink, configItem);
+      } else {
+        sidebarNav.appendChild(adminLink);
+      }
+      console.log('Admin panel link added!'); // Debug
+    } else {
+      console.error('Sidebar nav ul not found!');
+    }
+  } else {
+    console.log('User is not admin or currentUser is null');
+  }
 
   socket.on('new_notification', () => {
     const notificationDot = document.querySelector('.notification-dot');
@@ -108,11 +141,11 @@ document.addEventListener('DOMContentLoaded', function() {
   updateNotificationCount();
 
   menuItems.forEach(item => {
-    item.addEventListener('click', function() {
+    item.addEventListener('click', function () {
       // Se for o botão de mensagens, abre o modal e não muda a view principal
       if (this.innerText.includes('Mensagens')) {
         openMessagesModal();
-        return; 
+        return;
       }
 
       menuItems.forEach(i => i.classList.remove('active'));
@@ -128,10 +161,12 @@ document.addEventListener('DOMContentLoaded', function() {
       timelineFeed.style.display = 'none';
       settingsPage.style.display = 'none';
       document.querySelector('.create-post').style.display = 'none';
+      document.getElementById('stories-section').style.display = 'none';
 
       if (this.innerText.includes('Início')) {
         timelineFeed.style.display = 'block';
         document.querySelector('.create-post').style.display = 'block';
+        document.getElementById('stories-section').style.display = 'block';
         showTimelineView();
       }
       if (this.innerText.includes('Perfil')) {
@@ -154,54 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   logoutButton.addEventListener('click', logout);
 
-  // --- Lógica de Explorar e Convites (Mantida aqui por simplicidade) ---
-
-  function showExploreView() {
-    explorePage.style.display = 'block';
-    const userSearchResults = document.getElementById('user-search-results');
-    userSearchResults.innerHTML = '<p>Use a busca acima para encontrar pessoas.</p>';
-    
-    const userSearchButton = document.getElementById('user-search-button');
-    const userSearchInput = document.getElementById('user-search-input');
-
-    userSearchButton.onclick = handleUserSearch;
-    userSearchInput.onkeyup = (e) => {
-      if (e.key === 'Enter') handleUserSearch();
-    };
-  }
-
-  async function handleUserSearch() {
-    const userSearchInput = document.getElementById('user-search-input');
-    const userSearchResults = document.getElementById('user-search-results');
-    const query = userSearchInput.value.trim();
-    if (!query) return;
-
-    try {
-      const res = await fetch(`${API_URL}/connections/search?name=${query}`, {
-        headers: getAuthHeaders(),
-      });
-      if (!res.ok) throw new Error('Falha na busca');
-      const users = await res.json();
-      
-      userSearchResults.innerHTML = '';
-      if (users.length === 0) {
-        userSearchResults.innerHTML = '<p>Nenhum usuário encontrado.</p>';
-        return;
-      }
-
-      users.forEach(user => {
-        const userCard = document.createElement('div');
-        userCard.classList.add('user-card');
-        let buttonHtml = `<button class="add-user-button" data-userid="${user._id}">Adicionar</button>`;
-        if (user.status === 'connected') buttonHtml = '<button disabled>Conectado</button>';
-        
-        userCard.innerHTML = `<img src="${user.avatar}" class="avatar"><div><strong>${user.name}</strong>${buttonHtml}</div>`;
-        userSearchResults.appendChild(userCard);
-      });
-    } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
-    }
-  }
+  // --- Lógica de Convites (Mantida aqui por simplicidade) ---
 
   function showInvitationsView() {
     invitationsPage.style.display = 'block';
@@ -287,95 +275,95 @@ document.addEventListener('DOMContentLoaded', function() {
 
   mainContent.addEventListener('click', async (e) => {
     if (e.target.matches('.add-user-button')) {
-        const btn = e.target;
-        await fetch(`${API_URL}/connections/request/${btn.dataset.userid}`, { method: 'POST', headers: getAuthHeaders() });
-        btn.textContent = 'Pedido Enviado';
-        btn.disabled = true;
+      const btn = e.target;
+      await fetch(`${API_URL}/connections/request/${btn.dataset.userid}`, { method: 'POST', headers: getAuthHeaders() });
+      btn.textContent = 'Pedido Enviado';
+      btn.disabled = true;
     }
     if (e.target.matches('.accept-request-button, .decline-request-button')) {
-        const btn = e.target;
-        const response = btn.classList.contains('accept-request-button') ? 'accept' : 'decline';
-        
-        // Verifica se o checkbox de família está marcado
-        const card = btn.closest('.connection-request-card');
-        const isFamily = card.querySelector('.family-checkbox') ? card.querySelector('.family-checkbox').checked : false;
+      const btn = e.target;
+      const response = btn.classList.contains('accept-request-button') ? 'accept' : 'decline';
 
-        await fetch(`${API_URL}/connections/${btn.dataset.requestid}/respond`, {
-            method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ response, isFamily })
-        });
-        fetchAndRenderConnectionRequests();
+      // Verifica se o checkbox de família está marcado
+      const card = btn.closest('.connection-request-card');
+      const isFamily = card.querySelector('.family-checkbox') ? card.querySelector('.family-checkbox').checked : false;
+
+      await fetch(`${API_URL}/connections/${btn.dataset.requestid}/respond`, {
+        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ response, isFamily })
+      });
+      fetchAndRenderConnectionRequests();
     }
   });
 
   // --- Lógica da Página de Configurações ---
   function initSettings() {
-      const saveBannerBtn = document.getElementById('save-banner-btn');
-      const saveChatBgBtn = document.getElementById('save-chatbg-btn');
-      const darkModeToggle = document.getElementById('dark-mode-toggle');
+    const saveBannerBtn = document.getElementById('save-banner-btn');
+    const saveChatBgBtn = document.getElementById('save-chatbg-btn');
+    const darkModeToggle = document.getElementById('dark-mode-toggle');
 
-      // Configura o estado inicial do toggle
-      if (localStorage.getItem('theme') === 'dark') {
-          darkModeToggle.checked = true;
-      }
+    // Configura o estado inicial do toggle
+    if (localStorage.getItem('theme') === 'dark') {
+      darkModeToggle.checked = true;
+    }
 
-      // Evento de troca de tema
-      darkModeToggle.addEventListener('change', () => {
-          document.body.classList.toggle('dark-mode');
-          localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    // Evento de troca de tema
+    darkModeToggle.addEventListener('change', () => {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+
+    if (saveBannerBtn) {
+      saveBannerBtn.addEventListener('click', async () => {
+        const input = document.getElementById('settings-banner-input');
+        if (input.files.length === 0) return alert('Selecione uma imagem para o banner.');
+
+        const formData = new FormData();
+        formData.append('banner', input.files[0]);
+
+        try {
+          saveBannerBtn.textContent = 'Salvando...';
+
+          const res = await fetch(`${API_URL}/users/profile/banner`, {
+            method: 'PUT',
+            body: formData,
+            headers: getUploadHeaders()
+          });
+
+          if (!res.ok) throw new Error('Erro ao salvar banner');
+
+          const updatedUser = await res.json();
+
+          // Atualiza currentUser e LocalStorage com a URL real do servidor
+          currentUser.bannerUrl = updatedUser.bannerUrl;
+
+          const stored = JSON.parse(localStorage.getItem('userInfo'));
+          stored.bannerUrl = updatedUser.bannerUrl;
+          localStorage.setItem('userInfo', JSON.stringify(stored));
+
+          alert('Banner atualizado com sucesso!');
+          saveBannerBtn.textContent = 'Atualizar Banner';
+        } catch (e) { console.error(e); }
       });
+    }
 
-      if (saveBannerBtn) {
-          saveBannerBtn.addEventListener('click', async () => {
-              const input = document.getElementById('settings-banner-input');
-              if (input.files.length === 0) return alert('Selecione uma imagem para o banner.');
-              
-              const formData = new FormData();
-              formData.append('banner', input.files[0]);
+    if (saveChatBgBtn) {
+      saveChatBgBtn.addEventListener('click', () => {
+        const input = document.getElementById('settings-chatbg-input');
+        if (input.files.length === 0) return alert('Selecione uma imagem.');
 
-              try {
-                  saveBannerBtn.textContent = 'Salvando...';
-                  
-                  const res = await fetch(`${API_URL}/users/profile/banner`, { 
-                      method: 'PUT', 
-                      body: formData, 
-                      headers: getUploadHeaders() 
-                  });
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target.result;
+          currentUser.chatBackground = result;
+          const stored = JSON.parse(localStorage.getItem('userInfo'));
+          stored.chatBackground = result;
+          localStorage.setItem('userInfo', JSON.stringify(stored));
 
-                  if (!res.ok) throw new Error('Erro ao salvar banner');
-
-                  const updatedUser = await res.json();
-
-                  // Atualiza currentUser e LocalStorage com a URL real do servidor
-                  currentUser.bannerUrl = updatedUser.bannerUrl;
-                  
-                  const stored = JSON.parse(localStorage.getItem('userInfo'));
-                  stored.bannerUrl = updatedUser.bannerUrl;
-                  localStorage.setItem('userInfo', JSON.stringify(stored));
-                  
-                  alert('Banner atualizado com sucesso!');
-                  saveBannerBtn.textContent = 'Atualizar Banner';
-              } catch (e) { console.error(e); }
-          });
-      }
-
-      if (saveChatBgBtn) {
-          saveChatBgBtn.addEventListener('click', () => {
-              const input = document.getElementById('settings-chatbg-input');
-              if (input.files.length === 0) return alert('Selecione uma imagem.');
-              
-              const reader = new FileReader();
-              reader.onload = (e) => {
-                  const result = e.target.result;
-                  currentUser.chatBackground = result;
-                  const stored = JSON.parse(localStorage.getItem('userInfo'));
-                  stored.chatBackground = result;
-                  localStorage.setItem('userInfo', JSON.stringify(stored));
-                  
-                  document.getElementById('msg-chat-area').style.backgroundImage = `url('${result}')`;
-                  alert('Fundo do chat atualizado!');
-              };
-              reader.readAsDataURL(input.files[0]);
-          });
-      }
+          document.getElementById('msg-chat-area').style.backgroundImage = `url('${result}')`;
+          alert('Fundo do chat atualizado!');
+        };
+        reader.readAsDataURL(input.files[0]);
+      });
+    }
   }
 });

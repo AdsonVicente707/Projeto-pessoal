@@ -16,28 +16,41 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-  avatar: {
-    type: String,
-    default: 'https://i.pravatar.cc/150'
-  },
-  avatarPosX: {
-    type: Number,
-    default: 50
-  },
-  avatarPosY: {
-    type: Number,
-    default: 50
-  },
-  bannerUrl: {
-    type: String,
-    // Um banner padrão para novos usuários
-    default: 'https://placehold.co/1200x400/EFEFEF/AAAAAA&text=Banner'
-  },
-  // Lista de IDs de usuários com quem este usuário está conectado (status 'accepted')
-  connections: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }]
+    avatar: {
+      type: String,
+      default: 'https://i.pravatar.cc/150'
+    },
+    avatarPosX: {
+      type: Number,
+      default: 50
+    },
+    avatarPosY: {
+      type: Number,
+      default: 50
+    },
+    bannerUrl: {
+      type: String,
+      // Um banner padrão para novos usuários
+      default: 'https://placehold.co/1200x400/EFEFEF/AAAAAA&text=Banner'
+    },
+    // Lista de IDs de usuários com quem este usuário está conectado (status 'accepted')
+    connections: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user'
+    },
+    isSuspended: {
+      type: Boolean,
+      default: false
+    },
+    lastSeen: {
+      type: Date,
+      default: Date.now
+    }
   },
   {
     timestamps: true, // Cria campos createdAt e updatedAt automaticamente
@@ -45,7 +58,7 @@ const userSchema = mongoose.Schema(
 );
 
 // Sobrescreve o método toJSON para remover a senha do objeto retornado
-userSchema.methods.toJSON = function() {
+userSchema.methods.toJSON = function () {
   const user = this.toObject();
   delete user.password;
   return user;
