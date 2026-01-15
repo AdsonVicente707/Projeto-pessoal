@@ -82,24 +82,32 @@ document.addEventListener('DOMContentLoaded', function () {
   // Load active theme
   loadActiveTheme();
 
-  // Add admin panel link if user is admin
+  // Add admin panel menu item if user is admin
   console.log('Current user role:', currentUser?.role); // Debug
   if (currentUser && currentUser.role === 'admin') {
-    console.log('Adding admin panel link...'); // Debug
+    console.log('User is admin - adding admin panel menu item'); // Debug
     const sidebarNav = document.querySelector('.sidebar nav ul');
     if (sidebarNav) {
-      const adminLink = document.createElement('li');
-      adminLink.innerHTML = '<a href="/admin.html"><i class="fas fa-shield-alt"></i> Painel Admin</a>';
-      // Insert before "Configurações" (second to last item)
+      const adminMenuItem = document.createElement('li');
+      adminMenuItem.id = 'admin-panel-menu-item';
+      adminMenuItem.innerHTML = '<i class="fas fa-shield-alt"></i> Painel Admin';
+
+      // Insert before "Configurações"
       const configItem = Array.from(sidebarNav.children).find(li =>
         li.textContent.includes('Configurações')
       );
       if (configItem) {
-        sidebarNav.insertBefore(adminLink, configItem);
+        sidebarNav.insertBefore(adminMenuItem, configItem);
       } else {
-        sidebarNav.appendChild(adminLink);
+        sidebarNav.appendChild(adminMenuItem);
       }
-      console.log('Admin panel link added!'); // Debug
+
+      // Add click handler
+      adminMenuItem.addEventListener('click', () => {
+        showAdminPanel();
+      });
+
+      console.log('Admin panel menu item added!'); // Debug
     } else {
       console.error('Sidebar nav ul not found!');
     }
@@ -366,4 +374,245 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
   }
+
+  // --- Admin Panel Logic ---
+  function showAdminPanel() {
+    // Hide all other sections
+    document.querySelectorAll('main > section').forEach(section => {
+      section.style.display = 'none';
+    });
+
+    // Show admin panel
+    const adminPanel = document.getElementById('admin-panel-page');
+    if (adminPanel) {
+      adminPanel.style.display = 'block';
+
+      // Load admin data
+      loadAdminDashboard();
+
+      // Setup tab switching
+      setupAdminTabs();
+    }
+
+    // Update active menu item
+    document.querySelectorAll('.sidebar nav ul li').forEach(li => li.classList.remove('active'));
+    const adminMenuItem = document.getElementById('admin-panel-menu-item');
+    if (adminMenuItem) {
+      adminMenuItem.classList.add('active');
+    }
+  }
+
+  function setupAdminTabs() {
+    const tabs = document.querySelectorAll('.admin-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active from all tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Hide all tab contents
+        document.querySelectorAll('.admin-tab-content').forEach(content => {
+          content.style.display = 'none';
+        });
+
+        // Show selected tab
+        const tabName = tab.dataset.tab;
+        const tabContent = document.getElementById(`admin-${tabName}-tab`);
+        if (tabContent) {
+          tabContent.style.display = 'block';
+        }
+
+        // Load data for the tab
+        if (tabName === 'dashboard') {
+          loadAdminDashboard();
+        } else if (tabName === 'users') {
+          loadAdminUsers();
+        } else if (tabName === 'themes') {
+          loadAdminThemes();
+        }
+      });
+    });
+  }
+
+  async function loadAdminDashboard() {
+    try {
+      const response = await fetch(`${API_URL}/admin/stats`, {
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const stats = await response.json();
+        const statsGrid = document.getElementById('admin-stats-grid');
+        statsGrid.innerHTML = `
+          <div class="admin-stat-card">
+            <i class="fas fa-users"></i>
+            <h3>${stats.totalUsers || 0}</h3>
+            <p>Total de Usuários</p>
+          </div>
+          <div class="admin-stat-card">
+            <i class="fas fa-file-alt"></i>
+            <h3>${stats.totalPosts || 0}</h3>
+            <p>Total de Posts</p>
+          </div>
+          <div class="admin-stat-card">
+            <i class="fas fa-layer-group"></i>
+            <h3>${stats.totalSpaces || 0}</h3>
+            <p>Total de Espaços</p>
+          </div>
+          <div class="admin-stat-card">
+            <i class="fas fa-user-check"></i>
+            <h3>${stats.onlineNow || 0}</h3>
+            <p>Usuários Online</p>
+          </div>
+        `;
+      } else {
+        console.error('Failed to load admin stats');
+      }
+    } catch (error) {
+      console.error('Error loading admin dashboard:', error);
+    }
+  }
+
+  async function loadAdminUsers() {
+    try {
+      const response = await fetch(`${API_URL}/admin/users`, {
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const users = await response.json();
+        const usersList = document.getElementById('admin-users-list');
+        usersList.innerHTML = users.map(user => `
+          <div class="admin-user-card">
+            <img src="${user.avatar || 'https://i.pravatar.cc/40?img=0'}" alt="${user.name}">
+            <div class="admin-user-info">
+              <h4>${user.name}</h4>
+              <p>${user.email}</p>
+              <span class="admin-user-role ${user.role === 'admin' ? 'admin' : 'user'}">${user.role || 'user'}</span>
+            </div>
+            <div class="admin-user-actions">
+              ${user.role === 'admin' ?
+            `<button onclick="demoteUser('${user._id}')">Rebaixar</button>` :
+            `<button onclick="promoteUser('${user._id}')">Promover a Admin</button>`
+          }
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  }
+
+  async function loadAdminThemes() {
+    try {
+      const response = await fetch(`${API_URL}/admin/themes`, {
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const themes = await response.json();
+        const themesList = document.getElementById('admin-themes-list');
+        themesList.innerHTML = themes.map(theme => `
+          <div class="admin-theme-card ${theme.isActive ? 'active' : ''}">
+            <h4>${theme.name}</h4>
+            <div class="admin-theme-colors">
+              <span style="background: ${theme.colors.primary}"></span>
+              <span style="background: ${theme.colors.secondary}"></span>
+            </div>
+            <div class="admin-theme-actions">
+              ${theme.isActive ?
+            `<button onclick="deactivateTheme('${theme._id}')">Desativar</button>` :
+            `<button onclick="activateTheme('${theme._id}')">Ativar</button>`
+          }
+              <button onclick="deleteTheme('${theme._id}')">Deletar</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    } catch (error) {
+      console.error('Error loading themes:', error);
+    }
+  }
+
+  // Make functions global for onclick handlers
+  window.promoteUser = async (userId) => {
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ role: 'admin' })
+      });
+      if (response.ok) {
+        alert('Usuário promovido a admin!');
+        loadAdminUsers();
+      }
+    } catch (error) {
+      console.error('Error promoting user:', error);
+    }
+  };
+
+  window.demoteUser = async (userId) => {
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ role: 'user' })
+      });
+      if (response.ok) {
+        alert('Usuário rebaixado!');
+        loadAdminUsers();
+      }
+    } catch (error) {
+      console.error('Error demoting user:', error);
+    }
+  };
+
+  window.activateTheme = async (themeId) => {
+    try {
+      const response = await fetch(`${API_URL}/admin/themes/${themeId}/activate`, {
+        method: 'PUT',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        alert('Tema ativado!');
+        loadAdminThemes();
+        loadActiveTheme(); // Reload theme on main page
+      }
+    } catch (error) {
+      console.error('Error activating theme:', error);
+    }
+  };
+
+  window.deactivateTheme = async (themeId) => {
+    try {
+      const response = await fetch(`${API_URL}/admin/themes/deactivate-all`, {
+        method: 'POST',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        alert('Tema desativado!');
+        loadAdminThemes();
+        removeTheme(); // Remove theme from main page
+      }
+    } catch (error) {
+      console.error('Error deactivating theme:', error);
+    }
+  };
+
+  window.deleteTheme = async (themeId) => {
+    if (!confirm('Tem certeza que deseja deletar este tema?')) return;
+    try {
+      const response = await fetch(`${API_URL}/admin/themes/${themeId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (response.ok) {
+        alert('Tema deletado!');
+        loadAdminThemes();
+      }
+    } catch (error) {
+      console.error('Error deleting theme:', error);
+    }
+  };
 });
