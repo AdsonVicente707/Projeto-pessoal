@@ -41,6 +41,7 @@
         <li id="menu-messages-btn" style="position: relative;"><i class="fas fa-envelope"></i> Mensagens <span
             id="msg-badge" class="notification-dot hidden" style="top: 15px; right: 15px;">0</span></li>
         <li><i class="fas fa-user"></i> Perfil</li>
+        <li id="admin-menu-link" style="display: none;"><i class="fas fa-shield-alt"></i> Painel Admin</li>
         <li><i class="fas fa-cog"></i> Configurações</li>
         <li id="logout-button"><i class="fas fa-sign-out-alt"></i> Sair</li>
       </ul>
@@ -369,6 +370,56 @@
         </div>
       </div>
     </section>
+
+    <!-- Modal de Criação de Tema (Admin Panel) -->
+    <div id="admin-theme-modal"
+      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;">
+      <div
+        style="background: var(--bg-surface); padding: 32px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto;">
+        <h2>Criar Tema Sazonal</h2>
+        <form id="admin-theme-form">
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nome do Tema</label>
+            <input type="text" id="admin-theme-name" required placeholder="Ex: Natal 2026"
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);">
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Slug (identificador único)</label>
+            <input type="text" id="admin-theme-slug" required placeholder="Ex: christmas"
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);">
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Cor Primária</label>
+            <input type="color" id="admin-theme-primary" value="#C41E3A"
+              style="width: 100%; height: 50px; border: 1px solid var(--input-border); border-radius: 8px; cursor: pointer;">
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Cor Secundária</label>
+            <input type="color" id="admin-theme-secondary" value="#165B33"
+              style="width: 100%; height: 50px; border: 1px solid var(--input-border); border-radius: 8px; cursor: pointer;">
+          </div>
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Tipo de Partículas</label>
+            <select id="admin-theme-particles"
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);">
+              <option value="none">Nenhuma</option>
+              <option value="snow">Neve</option>
+              <option value="confetti">Confete</option>
+              <option value="hearts">Corações</option>
+              <option value="flowers">Flores</option>
+              <option value="bats">Morcegos</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button type="submit"
+              style="flex: 1; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Criar
+              Tema</button>
+            <button type="button" id="admin-cancel-theme-btn"
+              style="flex: 1; padding: 12px; background: var(--bg-hover); color: var(--text-main); border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
   </main>
 

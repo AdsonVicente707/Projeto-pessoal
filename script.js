@@ -82,37 +82,30 @@ document.addEventListener('DOMContentLoaded', function () {
   // Load active theme
   loadActiveTheme();
 
-  // Add admin panel menu item if user is admin
-  console.log('Current user role:', currentUser?.role); // Debug
-  if (currentUser && currentUser.role === 'admin') {
-    console.log('User is admin - adding admin panel menu item'); // Debug
-    const sidebarNav = document.querySelector('.sidebar nav ul');
-    if (sidebarNav) {
-      const adminMenuItem = document.createElement('li');
-      adminMenuItem.id = 'admin-panel-menu-item';
-      adminMenuItem.innerHTML = '<i class="fas fa-shield-alt"></i> Painel Admin';
+  // Show admin panel link if user is admin
+  console.log('🔐 Checking admin access...');
+  console.log('Current user:', currentUser);
+  console.log('Current user role:', currentUser?.role);
 
-      // Insert before "Configurações"
-      const configItem = Array.from(sidebarNav.children).find(li =>
-        li.textContent.includes('Configurações')
-      );
-      if (configItem) {
-        sidebarNav.insertBefore(adminMenuItem, configItem);
-      } else {
-        sidebarNav.appendChild(adminMenuItem);
-      }
+  if (currentUser && currentUser.role === 'admin') {
+    console.log('✅ User is admin - showing admin panel link');
+    const adminMenuLink = document.getElementById('admin-menu-link');
+    if (adminMenuLink) {
+      adminMenuLink.style.display = 'block';
 
       // Add click handler
-      adminMenuItem.addEventListener('click', () => {
+      adminMenuLink.addEventListener('click', () => {
+        console.log('🛡️ Admin panel clicked');
         showAdminPanel();
       });
 
-      console.log('Admin panel menu item added!'); // Debug
+      console.log('✅ Admin panel link configured!');
     } else {
-      console.error('Sidebar nav ul not found!');
+      console.error('❌ Admin menu link element not found in HTML!');
     }
   } else {
-    console.log('User is not admin or currentUser is null');
+    console.log('❌ User is not admin or currentUser is null');
+    console.log('   Role:', currentUser?.role);
   }
 
   socket.on('new_notification', () => {
@@ -156,6 +149,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
+      // Se for o painel admin, mostra o painel
+      if (this.innerText.includes('Painel Admin') || this.id === 'admin-menu-link') {
+        console.log('🛡️ Admin panel menu clicked');
+        showAdminPanel();
+        return;
+      }
+
       menuItems.forEach(i => i.classList.remove('active'));
       this.classList.add('active');
 
@@ -170,6 +170,10 @@ document.addEventListener('DOMContentLoaded', function () {
       settingsPage.style.display = 'none';
       document.querySelector('.create-post').style.display = 'none';
       document.getElementById('stories-section').style.display = 'none';
+
+      // Hide admin panel too
+      const adminPanel = document.getElementById('admin-panel-page');
+      if (adminPanel) adminPanel.style.display = 'none';
 
       if (this.innerText.includes('Início')) {
         timelineFeed.style.display = 'block';
@@ -377,6 +381,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // --- Admin Panel Logic ---
   function showAdminPanel() {
+    console.log('🛡️ Showing admin panel...');
+
     // Hide all other sections
     document.querySelectorAll('main > section').forEach(section => {
       section.style.display = 'none';
@@ -386,19 +392,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const adminPanel = document.getElementById('admin-panel-page');
     if (adminPanel) {
       adminPanel.style.display = 'block';
+      console.log('✅ Admin panel displayed');
 
       // Load admin data
       loadAdminDashboard();
 
       // Setup tab switching
       setupAdminTabs();
+    } else {
+      console.error('❌ Admin panel element not found!');
     }
 
     // Update active menu item
     document.querySelectorAll('.sidebar nav ul li').forEach(li => li.classList.remove('active'));
-    const adminMenuItem = document.getElementById('admin-panel-menu-item');
+    const adminMenuItem = document.getElementById('admin-menu-link');
     if (adminMenuItem) {
       adminMenuItem.classList.add('active');
+      console.log('✅ Admin menu item marked as active');
     }
   }
 
@@ -474,14 +484,30 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function loadAdminUsers() {
+    console.log('👥 Loading admin users...');
+    const usersList = document.getElementById('admin-users-list');
+
     try {
+      usersList.innerHTML = '<div style="text-align: center; padding: 40px;">Carregando usuários...</div>';
+
       const response = await fetch(`${API_URL}/admin/users`, {
         headers: getAuthHeaders()
       });
 
+      console.log('Response status:', response.status);
+
       if (response.ok) {
-        const users = await response.json();
-        const usersList = document.getElementById('admin-users-list');
+        const data = await response.json();
+        console.log('Users data received:', data);
+
+        // API returns { users: [...], totalPages, currentPage, total }
+        const users = data.users || data;
+
+        if (!users || users.length === 0) {
+          usersList.innerHTML = '<div style="text-align: center; padding: 40px;">Nenhum usuário encontrado</div>';
+          return;
+        }
+
         usersList.innerHTML = users.map(user => `
           <div class="admin-user-card">
             <img src="${user.avatar || 'https://i.pravatar.cc/40?img=0'}" alt="${user.name}">
@@ -498,21 +524,41 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
           </div>
         `).join('');
+
+        console.log(`✅ Loaded ${users.length} users`);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to load users:', response.status, errorText);
+        usersList.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">Erro ao carregar usuários: ${response.status}</div>`;
       }
     } catch (error) {
-      console.error('Error loading users:', error);
+      console.error('Error loading admin users:', error);
+      usersList.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">Erro: ${error.message}</div>`;
     }
   }
 
   async function loadAdminThemes() {
+    console.log('🎨 Loading admin themes...');
+    const themesList = document.getElementById('admin-themes-list');
+
     try {
+      themesList.innerHTML = '<div style="text-align: center; padding: 40px;">Carregando temas...</div>';
+
       const response = await fetch(`${API_URL}/admin/themes`, {
         headers: getAuthHeaders()
       });
 
+      console.log('Response status:', response.status);
+
       if (response.ok) {
         const themes = await response.json();
-        const themesList = document.getElementById('admin-themes-list');
+        console.log('Themes data received:', themes);
+
+        if (!themes || themes.length === 0) {
+          themesList.innerHTML = '<div style="text-align: center; padding: 40px;">Nenhum tema criado ainda. Clique em "Criar Novo Tema" para começar.</div>';
+          return;
+        }
+
         themesList.innerHTML = themes.map(theme => `
           <div class="admin-theme-card ${theme.isActive ? 'active' : ''}">
             <h4>${theme.name}</h4>
@@ -529,9 +575,16 @@ document.addEventListener('DOMContentLoaded', function () {
             </div>
           </div>
         `).join('');
+
+        console.log(`✅ Loaded ${themes.length} themes`);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to load themes:', response.status, errorText);
+        themesList.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">Erro ao carregar temas: ${response.status}</div>`;
       }
     } catch (error) {
       console.error('Error loading themes:', error);
+      themesList.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">Erro: ${error.message}</div>`;
     }
   }
 
@@ -615,4 +668,82 @@ document.addEventListener('DOMContentLoaded', function () {
       console.error('Error deleting theme:', error);
     }
   };
+
+  // Theme Creation Modal Logic
+  const createThemeBtn = document.getElementById('admin-create-theme-btn');
+  const themeModal = document.getElementById('admin-theme-modal');
+  const themeForm = document.getElementById('admin-theme-form');
+  const cancelThemeBtn = document.getElementById('admin-cancel-theme-btn');
+
+  if (createThemeBtn) {
+    createThemeBtn.addEventListener('click', () => {
+      console.log('🎨 Opening theme creation modal...');
+      themeModal.style.display = 'flex';
+    });
+  }
+
+  if (cancelThemeBtn) {
+    cancelThemeBtn.addEventListener('click', () => {
+      console.log('❌ Closing theme creation modal...');
+      themeModal.style.display = 'none';
+      themeForm.reset();
+    });
+  }
+
+  if (themeForm) {
+    themeForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('📝 Submitting theme creation form...');
+
+      const theme = {
+        name: document.getElementById('admin-theme-name').value,
+        slug: document.getElementById('admin-theme-slug').value,
+        colors: {
+          primary: document.getElementById('admin-theme-primary').value,
+          secondary: document.getElementById('admin-theme-secondary').value,
+          accent: document.getElementById('admin-theme-primary').value // Use primary as accent
+        },
+        decorations: {
+          particles: document.getElementById('admin-theme-particles').value !== 'none',
+          particleType: document.getElementById('admin-theme-particles').value
+        }
+      };
+
+      console.log('Theme data:', theme);
+
+      try {
+        const response = await fetch(`${API_URL}/admin/themes`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(theme)
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || `Erro ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Tema criado:', result);
+
+        alert('✅ Tema criado com sucesso!');
+        themeModal.style.display = 'none';
+        themeForm.reset();
+        loadAdminThemes(); // Reload themes list
+      } catch (error) {
+        console.error('❌ Erro ao criar tema:', error);
+        alert(`❌ Erro ao criar tema: ${error.message}`);
+      }
+    });
+  }
+
+  // Close modal when clicking outside
+  if (themeModal) {
+    themeModal.addEventListener('click', (e) => {
+      if (e.target === themeModal) {
+        themeModal.style.display = 'none';
+        themeForm.reset();
+      }
+    });
+  }
 });
