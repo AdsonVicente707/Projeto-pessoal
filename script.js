@@ -7,6 +7,7 @@ import { initMessages, openMessagesModal } from './messages.js';
 import { initStories } from './stories.js';
 import { initExplore, showExploreView } from './explore.js';
 import { loadActiveTheme } from './themes.js';
+import { createEnhancedThemeModal, getThemeFormData } from './themeModal.js';
 
 // Verifica autenticação antes de tudo
 if (!checkAuth()) {
@@ -669,81 +670,121 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
-  // Theme Creation Modal Logic
+  // Enhanced Theme Creation Modal Logic
+  // Create enhanced modal on page load
+  createEnhancedThemeModal();
+
   const createThemeBtn = document.getElementById('admin-create-theme-btn');
-  const themeModal = document.getElementById('admin-theme-modal');
-  const themeForm = document.getElementById('admin-theme-form');
-  const cancelThemeBtn = document.getElementById('admin-cancel-theme-btn');
+  let themeModal, themeForm, cancelThemeBtn, previewBtn;
 
-  if (createThemeBtn) {
-    createThemeBtn.addEventListener('click', () => {
-      console.log('🎨 Opening theme creation modal...');
-      themeModal.style.display = 'flex';
-    });
-  }
+  // Wait a bit for modal to be created
+  setTimeout(() => {
+    themeModal = document.getElementById('admin-theme-modal');
+    themeForm = document.getElementById('admin-theme-form');
+    cancelThemeBtn = document.getElementById('admin-cancel-theme-btn');
+    previewBtn = document.getElementById('admin-preview-theme-btn');
 
-  if (cancelThemeBtn) {
-    cancelThemeBtn.addEventListener('click', () => {
-      console.log('❌ Closing theme creation modal...');
-      themeModal.style.display = 'none';
-      themeForm.reset();
-    });
-  }
-
-  if (themeForm) {
-    themeForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      console.log('📝 Submitting theme creation form...');
-
-      const theme = {
-        name: document.getElementById('admin-theme-name').value,
-        slug: document.getElementById('admin-theme-slug').value,
-        colors: {
-          primary: document.getElementById('admin-theme-primary').value,
-          secondary: document.getElementById('admin-theme-secondary').value,
-          accent: document.getElementById('admin-theme-primary').value // Use primary as accent
-        },
-        decorations: {
-          particles: document.getElementById('admin-theme-particles').value !== 'none',
-          particleType: document.getElementById('admin-theme-particles').value
+    if (createThemeBtn) {
+      createThemeBtn.addEventListener('click', () => {
+        console.log('🎨 Opening enhanced theme creation modal...');
+        if (themeModal) {
+          themeModal.style.display = 'flex';
         }
-      };
+      });
+    }
 
-      console.log('Theme data:', theme);
-
-      try {
-        const response = await fetch(`${API_URL}/admin/themes`, {
-          method: 'POST',
-          headers: getAuthHeaders(),
-          body: JSON.stringify(theme)
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || `Erro ${response.status}`);
+    if (cancelThemeBtn) {
+      cancelThemeBtn.addEventListener('click', () => {
+        console.log('❌ Closing theme creation modal...');
+        if (themeModal) {
+          themeModal.style.display = 'none';
         }
+        if (themeForm) {
+          themeForm.reset();
+        }
+      });
+    }
 
-        const result = await response.json();
-        console.log('✅ Tema criado:', result);
+    if (themeForm) {
+      themeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('📝 Submitting enhanced theme creation form...');
 
-        alert('✅ Tema criado com sucesso!');
-        themeModal.style.display = 'none';
-        themeForm.reset();
-        loadAdminThemes(); // Reload themes list
-      } catch (error) {
-        console.error('❌ Erro ao criar tema:', error);
-        alert(`❌ Erro ao criar tema: ${error.message}`);
-      }
-    });
-  }
+        const themeData = await getThemeFormData();
+        console.log('Theme data:', themeData);
 
-  // Close modal when clicking outside
-  if (themeModal) {
-    themeModal.addEventListener('click', (e) => {
-      if (e.target === themeModal) {
-        themeModal.style.display = 'none';
-        themeForm.reset();
-      }
-    });
+        try {
+          const response = await fetch(`${API_URL}/admin/themes`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(themeData)
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || `Erro ${response.status}`);
+          }
+
+          const result = await response.json();
+          console.log('✅ Tema criado:', result);
+
+          alert('✅ Tema criado com sucesso!');
+          if (themeModal) {
+            themeModal.style.display = 'none';
+          }
+          if (themeForm) {
+            themeForm.reset();
+          }
+          loadAdminThemes(); // Reload themes list
+        } catch (error) {
+          console.error('❌ Erro ao criar tema:', error);
+          alert(`❌ Erro ao criar tema: ${error.message}`);
+        }
+      });
+    }
+
+    // Preview button
+    if (previewBtn) {
+      previewBtn.addEventListener('click', async () => {
+        console.log('👁️ Previewing theme...');
+        const themeData = await getThemeFormData();
+        previewTheme(themeData);
+      });
+    }
+
+    // Close modal when clicking outside
+    if (themeModal) {
+      themeModal.addEventListener('click', (e) => {
+        if (e.target === themeModal) {
+          themeModal.style.display = 'none';
+          if (themeForm) {
+            themeForm.reset();
+          }
+        }
+      });
+    }
+  }, 100);
+
+  // Preview theme function
+  function previewTheme(themeData) {
+    console.log('Previewing theme:', themeData);
+
+    // Apply colors temporarily
+    document.documentElement.style.setProperty('--primary-color', themeData.colors.primary);
+    document.documentElement.style.setProperty('--secondary-color', themeData.colors.secondary);
+
+    // Apply background
+    if (themeData.background.type === 'color') {
+      document.body.style.background = themeData.background.value;
+    } else if (themeData.background.type === 'gradient') {
+      document.body.style.background = themeData.background.value;
+    } else if (themeData.background.type === 'image') {
+      document.body.style.backgroundImage = `url(${themeData.background.value})`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+    }
+    document.body.style.opacity = themeData.background.opacity;
+
+    alert(`👁️ Preview do tema "${themeData.name}"!\n\nRecarregue a página para voltar ao normal.`);
   }
 });

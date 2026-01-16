@@ -16,6 +16,20 @@ const themeSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+
+    // Date Scheduling
+    startDate: {
+        type: Date
+    },
+    endDate: {
+        type: Date
+    },
+    autoActivate: {
+        type: Boolean,
+        default: false
+    },
+
+    // Colors
     colors: {
         primary: {
             type: String,
@@ -32,8 +46,65 @@ const themeSchema = new mongoose.Schema({
         background: {
             type: String,
             default: '#F8FAFC'
+        },
+        text: {
+            type: String,
+            default: '#1F2937'
         }
     },
+
+    // Background Customization
+    background: {
+        type: {
+            type: String,
+            enum: ['color', 'gradient', 'image'],
+            default: 'color'
+        },
+        value: {
+            type: String,
+            default: ''
+        },
+        opacity: {
+            type: Number,
+            default: 1,
+            min: 0,
+            max: 1
+        }
+    },
+
+    // Fonts
+    fonts: {
+        primary: {
+            type: String,
+            default: 'Nunito'
+        },
+        secondary: {
+            type: String,
+            default: 'Nunito'
+        }
+    },
+
+    // Visual Effects
+    effects: {
+        shadows: {
+            type: Boolean,
+            default: true
+        },
+        blur: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 20
+        },
+        brightness: {
+            type: Number,
+            default: 100,
+            min: 50,
+            max: 150
+        }
+    },
+
+    // Decorations
     decorations: {
         headerIcon: {
             type: String,
@@ -49,16 +120,18 @@ const themeSchema = new mongoose.Schema({
             default: 'none'
         }
     },
+
+    // Theme Icon/Emoji
+    icon: {
+        type: String,
+        default: '🎨'
+    },
+
     customCSS: {
         type: String,
         default: ''
     },
-    startDate: {
-        type: Date
-    },
-    endDate: {
-        type: Date
-    },
+
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

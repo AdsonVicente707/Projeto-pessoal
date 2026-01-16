@@ -26,6 +26,7 @@ const messageRoutes = require('./routes/messageRoutes'); // Importa as novas rot
 const storyRoutes = require('./routes/storyRoutes'); // Importa rotas de Stories
 const adminRoutes = require('./routes/adminRoutes'); // Importa rotas de Admin
 const themeRoutes = require('./routes/themeRoutes'); // Importa rotas de Temas (públicas)
+const themeScheduler = require('./utils/themeScheduler'); // Importa o agendador de temas
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const SpaceMessage = require('./models/SpaceMessage');
 
@@ -172,4 +173,7 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => { // Usa server.listen em vez de app.listen
   console.log(`Servidor rodando na porta ${PORT}`);
   console.log(`Acesse o site em: http://localhost:${PORT}`);
+
+  // Start theme scheduler
+  themeScheduler.start();
 });
