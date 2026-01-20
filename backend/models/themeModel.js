@@ -69,6 +69,20 @@ const themeSchema = new mongoose.Schema({
             default: 1,
             min: 0,
             max: 1
+        },
+        size: {
+            type: String,
+            enum: ['cover', 'contain', 'auto'],
+            default: 'cover'
+        },
+        position: {
+            type: String,
+            default: 'center'
+        },
+        repeat: {
+            type: String,
+            enum: ['no-repeat', 'repeat', 'repeat-x', 'repeat-y'],
+            default: 'no-repeat'
         }
     },
 

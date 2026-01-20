@@ -485,57 +485,204 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   async function loadAdminUsers() {
-    console.log('👥 Loading admin users...');
+    console.log('👥 Loading admin users with NEW interface...');
     const usersList = document.getElementById('admin-users-list');
+    const paginationContainer = document.getElementById('users-pagination');
+
+    // Get filter values
+    const searchQuery = document.getElementById('users-search')?.value || '';
+    const roleFilter = document.getElementById('filter-role')?.value || '';
+    const statusFilter = document.getElementById('filter-status')?.value || '';
+    const sortBy = document.getElementById('sort-by')?.value || 'recent';
+    const currentPage = window.adminUsersCurrentPage || 1;
+    const limit = 12;
 
     try {
       usersList.innerHTML = '<div style="text-align: center; padding: 40px;">Carregando usuários...</div>';
 
-      const response = await fetch(`${API_URL}/admin/users`, {
+      // Build query string
+      const params = new URLSearchParams({
+        page: currentPage,
+        limit: limit,
+        ...(searchQuery && { search: searchQuery }),
+        ...(roleFilter && { role: roleFilter }),
+        ...(statusFilter && { status: statusFilter }),
+        ...(sortBy && { sort: sortBy })
+      });
+
+      const response = await fetch(`${API_URL}/admin/users?${params}`, {
         headers: getAuthHeaders()
       });
 
-      console.log('Response status:', response.status);
-
       if (response.ok) {
         const data = await response.json();
-        console.log('Users data received:', data);
-
-        // API returns { users: [...], totalPages, currentPage, total }
         const users = data.users || data;
+        const totalPages = data.totalPages || 1;
+        const total = data.total || users.length;
 
         if (!users || users.length === 0) {
-          usersList.innerHTML = '<div style="text-align: center; padding: 40px;">Nenhum usuário encontrado</div>';
+          usersList.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">Nenhum usuário encontrado</div>';
+          paginationContainer.innerHTML = '';
           return;
         }
 
-        usersList.innerHTML = users.map(user => `
-          <div class="admin-user-card">
-            <img src="${user.avatar || 'https://i.pravatar.cc/40?img=0'}" alt="${user.name}">
-            <div class="admin-user-info">
-              <h4>${user.name}</h4>
-              <p>${user.email}</p>
-              <span class="admin-user-role ${user.role === 'admin' ? 'admin' : 'user'}">${user.role || 'user'}</span>
-            </div>
-            <div class="admin-user-actions">
-              ${user.role === 'admin' ?
-            `<button onclick="demoteUser('${user._id}')">Rebaixar</button>` :
-            `<button onclick="promoteUser('${user._id}')">Promover a Admin</button>`
+        // NEW INTERFACE: White cards with full admin actions
+        usersList.innerHTML = `
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+            ${users.map(user => `
+              <div style="background: var(--bg-surface); border-radius: 12px; padding: 20px; box-shadow: var(--shadow-md); transition: all 0.2s;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                  <img src="${user.avatar || 'https://i.pravatar.cc/40?img=0'}" alt="${user.name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; cursor: pointer;" onclick="viewUserProfile('${user._id}')">
+                  <div style="flex: 1;">
+                    <h4 style="margin: 0; color: var(--text-main); font-size: 16px; cursor: pointer;" onclick="viewUserProfile('${user._id}')">${user.name}</h4>
+                    <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 13px;">${user.email}</p>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap;">
+                  <span style="padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; ${user.role === 'admin' ? 'background: #8B5CF6; color: white;' : 'background: var(--bg-hover); color: var(--text-secondary);'}">${user.role === 'admin' ? '👑 Admin' : '👤 Usuário'}</span>
+                  <span style="padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 600; ${user.status === 'suspended' ? 'background: #EF4444; color: white;' : 'background: #10B981; color: white;'}">${user.status === 'suspended' ? '🚫 Suspenso' : '✅ Ativo'}</span>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                  <button onclick="viewUserDetails('${user._id}')" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); color: var(--text-main); cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-eye"></i> Ver Detalhes
+                  </button>
+                  <button onclick="sendMessageToUser('${user._id}', '${user.name.replace(/'/g, "\\'")}')" style="padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); color: var(--text-main); cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-envelope"></i> Mensagem
+                  </button>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                  ${user.role === 'admin' ?
+            `<button onclick="demoteUser('${user._id}')" style="padding: 8px; border: none; border-radius: 8px; background: #F59E0B; color: white; cursor: pointer; font-size: 12px; font-weight: 600;">↓ Rebaixar</button>` :
+            `<button onclick="promoteUser('${user._id}')" style="padding: 8px; border: none; border-radius: 8px; background: var(--primary); color: white; cursor: pointer; font-size: 12px; font-weight: 600;">↑ Promover</button>`
           }
-            </div>
+                  <button onclick="deleteUserAdmin('${user._id}', '${user.name.replace(/'/g, "\\'")}')" style="padding: 8px; border: none; border-radius: 8px; background: #EF4444; color: white; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                    <i class="fas fa-trash"></i> Excluir
+                  </button>
+                </div>
+              </div>
+            `).join('')}
           </div>
-        `).join('');
+        `;
 
-        console.log(`✅ Loaded ${users.length} users`);
+        // Render pagination
+        renderUsersPagination(currentPage, totalPages, total);
+
+        console.log(`✅ Loaded ${users.length} users with NEW interface (Page ${currentPage}/${totalPages})`);
       } else {
         const errorText = await response.text();
         console.error('Failed to load users:', response.status, errorText);
         usersList.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">Erro ao carregar usuários: ${response.status}</div>`;
+        paginationContainer.innerHTML = '';
       }
     } catch (error) {
       console.error('Error loading admin users:', error);
       usersList.innerHTML = `<div style="text-align: center; padding: 40px; color: red;">Erro: ${error.message}</div>`;
+      paginationContainer.innerHTML = '';
     }
+  }
+
+  function renderUsersPagination(currentPage, totalPages, total) {
+    const paginationContainer = document.getElementById('users-pagination');
+    if (!paginationContainer) return;
+
+    if (totalPages <= 1) {
+      paginationContainer.innerHTML = `<div style="color: var(--text-secondary); font-size: 14px;">Total: ${total} usuários</div>`;
+      return;
+    }
+
+    let paginationHTML = `<div style="color: var(--text-secondary); font-size: 14px; margin-right: 16px;">Total: ${total} usuários</div>`;
+
+    // Previous button
+    paginationHTML += `
+      <button onclick="changeUsersPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
+        style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-surface); color: var(--text-main); cursor: ${currentPage === 1 ? 'not-allowed' : 'pointer'}; opacity: ${currentPage === 1 ? '0.5' : '1'};">
+        ← Anterior
+      </button>
+    `;
+
+    // Page numbers
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage < maxVisiblePages - 1) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      paginationHTML += `
+        <button onclick="changeUsersPage(${i})" 
+          style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: ${i === currentPage ? 'var(--primary)' : 'var(--bg-surface)'}; color: ${i === currentPage ? 'white' : 'var(--text-main)'}; cursor: pointer; font-weight: ${i === currentPage ? '600' : '400'};">
+          ${i}
+        </button>
+      `;
+    }
+
+    // Next button
+    paginationHTML += `
+      <button onclick="changeUsersPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}
+        style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-surface); color: var(--text-main); cursor: ${currentPage === totalPages ? 'not-allowed' : 'pointer'}; opacity: ${currentPage === totalPages ? '0.5' : '1'};">
+        Próxima →
+      </button>
+    `;
+
+    paginationContainer.innerHTML = paginationHTML;
+  }
+
+  window.changeUsersPage = function (page) {
+    window.adminUsersCurrentPage = page;
+    loadAdminUsers();
+  };
+
+  // Setup filter event listeners
+  function setupUsersFilters() {
+    const searchInput = document.getElementById('users-search');
+    const roleFilter = document.getElementById('filter-role');
+    const statusFilter = document.getElementById('filter-status');
+    const sortBy = document.getElementById('sort-by');
+
+    if (searchInput) {
+      let searchTimeout;
+      searchInput.addEventListener('input', () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          window.adminUsersCurrentPage = 1; // Reset to first page
+          loadAdminUsers();
+        }, 500); // Debounce 500ms
+      });
+    }
+
+    if (roleFilter) {
+      roleFilter.addEventListener('change', () => {
+        window.adminUsersCurrentPage = 1;
+        loadAdminUsers();
+      });
+    }
+
+    if (statusFilter) {
+      statusFilter.addEventListener('change', () => {
+        window.adminUsersCurrentPage = 1;
+        loadAdminUsers();
+      });
+    }
+
+    if (sortBy) {
+      sortBy.addEventListener('change', () => {
+        window.adminUsersCurrentPage = 1;
+        loadAdminUsers();
+      });
+    }
+  }
+
+  // Call setupUsersFilters when users tab is shown
+  const originalSetupAdminTabs = setupAdminTabs;
+  function setupAdminTabs() {
+    originalSetupAdminTabs();
+    // Setup filters after tabs are initialized
+    setTimeout(setupUsersFilters, 100);
   }
 
   async function loadAdminThemes() {
@@ -549,11 +696,8 @@ document.addEventListener('DOMContentLoaded', function () {
         headers: getAuthHeaders()
       });
 
-      console.log('Response status:', response.status);
-
       if (response.ok) {
         const themes = await response.json();
-        console.log('Themes data received:', themes);
 
         if (!themes || themes.length === 0) {
           themesList.innerHTML = '<div style="text-align: center; padding: 40px;">Nenhum tema criado ainda. Clique em "Criar Novo Tema" para começar.</div>';
@@ -619,6 +763,114 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     } catch (error) {
       console.error('Error demoting user:', error);
+    }
+  };
+
+  // View user details in modal
+  window.viewUserDetails = async (userId) => {
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        alert(`📊 Detalhes do Usuário:\n\n` +
+          `Nome: ${user.name}\n` +
+          `Email: ${user.email}\n` +
+          `Role: ${user.role === 'admin' ? '👑 Admin' : '👤 Usuário'}\n` +
+          `Status: ${user.status === 'suspended' ? '🚫 Suspenso' : '✅ Ativo'}\n` +
+          `Conexões: ${user.stats?.connections || 0}\n` +
+          `Posts: ${user.stats?.posts || 0}\n` +
+          `Criado em: ${new Date(user.createdAt).toLocaleDateString('pt-BR')}`
+        );
+      }
+    } catch (error) {
+      console.error('Error viewing user details:', error);
+      alert('Erro ao carregar detalhes do usuário');
+    }
+  };
+
+  // Send message to user
+  window.sendMessageToUser = async (userId, userName) => {
+    const message = prompt(`💬 Enviar mensagem para ${userName}:\n\nDigite sua mensagem:`);
+    if (!message || message.trim() === '') return;
+
+    try {
+      // This would use your existing messaging system
+      // For now, we'll just show a confirmation
+      alert(`✅ Mensagem enviada para ${userName}!\n\nMensagem: "${message}"\n\n(Implementar integração com sistema de mensagens)`);
+
+      // TODO: Integrate with your messaging API
+      // const response = await fetch(`${API_URL}/messages/send`, {
+      //   method: 'POST',
+      //   headers: getAuthHeaders(),
+      //   body: JSON.stringify({ recipientId: userId, text: message })
+      // });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      alert('Erro ao enviar mensagem');
+    }
+  };
+
+  // Delete user (admin action)
+  window.deleteUserAdmin = async (userId, userName) => {
+    const confirmation = confirm(
+      `⚠️ ATENÇÃO: Excluir usuário?\n\n` +
+      `Usuário: ${userName}\n\n` +
+      `Esta ação irá:\n` +
+      `• Remover o usuário permanentemente\n` +
+      `• Excluir todos os posts do usuário\n` +
+      `• Remover todas as conexões\n` +
+      `• Apagar mensagens e espaços\n\n` +
+      `Esta ação NÃO pode ser desfeita!\n\n` +
+      `Deseja continuar?`
+    );
+
+    if (!confirmation) return;
+
+    // Double confirmation for safety
+    const doubleCheck = prompt(`Digite "${userName}" para confirmar a exclusão:`);
+    if (doubleCheck !== userName) {
+      alert('❌ Nome não corresponde. Exclusão cancelada.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        alert(`✅ Usuário "${userName}" excluído com sucesso!`);
+        loadAdminUsers(); // Reload the list
+      } else {
+        const error = await response.json();
+        alert(`❌ Erro ao excluir usuário: ${error.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('❌ Erro ao excluir usuário');
+    }
+  };
+
+  // View user profile (navigate to their profile page)
+  window.viewUserProfile = async (userId) => {
+    try {
+      const response = await fetch(`${API_URL}/users/${userId}`, {
+        headers: getAuthHeaders()
+      });
+
+      if (response.ok) {
+        const user = await response.json();
+        // Close admin panel and show user profile
+        document.getElementById('admin-panel-page').style.display = 'none';
+        showProfileView(user);
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      alert('Erro ao carregar perfil do usuário');
     }
   };
 

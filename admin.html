@@ -10,6 +10,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+
+    <!-- Force cache clear -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script>
+        // Force reload if old interface detected
+        if (localStorage.getItem('admin_version') !== '3.0') {
+            localStorage.setItem('admin_version', '3.0');
+            if (!window.location.search.includes('force_reload')) {
+                window.location.href = window.location.pathname + '?force_reload=' + Date.now();
+            }
+        }
+    </script>
     <style>
         .admin-container {
             max-width: 1400px;
@@ -183,6 +197,327 @@
             font-family: inherit;
         }
 
+        /* ============================================
+           USERS PANEL - MINIMALIST REDESIGN
+           ============================================ */
+
+        /* Toolbar - Clean and Spacious */
+        .users-toolbar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+            font-size: 14px;
+        }
+
+        .search-container input {
+            width: 100% !important;
+            padding: 11px 14px 11px 40px;
+            border: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 0;
+            background: transparent;
+            color: #111827;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .search-container input:focus {
+            outline: none;
+            border-bottom-color: #3B82F6;
+        }
+
+        .search-container input::placeholder {
+            color: #9CA3AF;
+        }
+
+        .filters-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            background: #FAFAFA;
+            color: #374151;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-select:hover {
+            background: #F3F4F6;
+            border-color: rgba(0, 0, 0, 0.12);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: #3B82F6;
+            background: white;
+        }
+
+        /* Grid - Responsive and Clean */
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        /* User Cards - Minimalist Design */
+        .user-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .user-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .user-card-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .user-card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-card-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+            font-weight: 600;
+            color: #111827;
+            line-height: 1.4;
+        }
+
+        .user-card-info p {
+            margin: 0;
+            font-size: 13px;
+            color: #6B7280;
+            line-height: 1.4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Badges - Clean and Subtle */
+        .user-card-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .user-badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .user-badge.admin {
+            background: #5B21B6;
+            color: white;
+        }
+
+        .user-badge.user {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        .user-status-badge {
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .user-status-badge.active {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .user-status-badge.suspended {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        /* Action Buttons - Minimalist Icons */
+        .user-card-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 18px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-icon {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 7px;
+            background: #F9FAFB;
+            color: #6B7280;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-icon:hover {
+            background: #3B82F6;
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .btn-icon i {
+            font-size: 14px;
+        }
+
+        /* Pagination - Clean and Centered */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            padding: 20px 0;
+        }
+
+        .pagination button {
+            padding: 10px 18px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #3B82F6;
+            color: white;
+            border-color: #3B82F6;
+            transform: translateY(-1px);
+        }
+
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            color: #6B7280;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 0 12px;
+        }
+
+        /* Modal Styles */
+        .modal-large {
+            max-width: 700px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(0, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .users-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .users-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-container {
+                max-width: none;
+            }
+
+            .filters-container {
+                width: 100%;
+            }
+
+            .filter-select {
+                flex: 1;
+            }
+
+            .user-card {
+                padding: 20px;
+            }
+        }
+
+
         .modal {
             display: none;
             position: fixed;
@@ -238,10 +573,45 @@
             </div>
         </div>
 
+
         <!-- Users Panel -->
         <div class="admin-panel" id="users-panel">
-            <div id="users-list">
-                <!-- Users will be loaded here -->
+            <!-- Toolbar -->
+            <div class="users-toolbar">
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="users-search" placeholder="Buscar por nome, email ou bio...">
+                </div>
+
+                <div class="filters-container">
+                    <select id="filter-role" class="filter-select">
+                        <option value="">Todos os Roles</option>
+                        <option value="admin">👑 Admins</option>
+                        <option value="user">👤 Usuários</option>
+                    </select>
+
+                    <select id="filter-status" class="filter-select">
+                        <option value="">Todos os Status</option>
+                        <option value="active">✅ Ativos</option>
+                        <option value="suspended">🚫 Suspensos</option>
+                    </select>
+
+                    <select id="sort-by" class="filter-select">
+                        <option value="recent">🕐 Mais Recentes</option>
+                        <option value="name">🔤 Nome (A-Z)</option>
+                        <option value="oldest">📅 Mais Antigos</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Users Grid -->
+            <div class="users-grid" id="users-grid">
+                <!-- User cards will be loaded here -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="users-pagination">
+                <!-- Pagination controls will be loaded here -->
             </div>
         </div>
 
@@ -269,6 +639,104 @@
                     <label>Slug (identificador único)</label>
                     <input type="text" id="theme-slug" required placeholder="Ex: christmas">
                 </div>
+
+                <!-- Background Type Selection -->
+                <div class="form-group">
+                    <label>Tipo de Fundo</label>
+                    <select id="background-type">
+                        <option value="color">Cor Sólida</option>
+                        <option value="image">Imagem Personalizada</option>
+                    </select>
+                </div>
+
+                <!-- Color Background Options -->
+                <div id="color-options">
+                    <div class="form-group">
+                        <label>Cor de Fundo</label>
+                        <input type="color" id="background-color" value="#F8FAFC">
+                    </div>
+                </div>
+
+                <!-- Image Background Options -->
+                <div id="image-options" style="display: none;">
+                    <div class="form-group">
+                        <label>Imagem de Fundo</label>
+                        <input type="file" id="background-image" accept="image/*">
+                        <small style="color: var(--text-secondary); display: block; margin-top: 4px;">
+                            Formatos aceitos: JPG, PNG, GIF, WEBP (máx. 50MB)
+                        </small>
+                    </div>
+
+                    <!-- Image Preview and Cropper -->
+                    <div id="image-preview-container" style="display: none;">
+                        <div class="form-group">
+                            <label>Editar Imagem</label>
+                            <div
+                                style="max-height: 400px; overflow: hidden; border-radius: 8px; border: 2px solid var(--border-color);">
+                                <img id="image-preview" style="max-width: 100%; display: block;">
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+                                <button type="button" class="btn btn-secondary" onclick="rotateImage(-90)">
+                                    <i class="fas fa-undo"></i> Girar Esquerda
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="rotateImage(90)">
+                                    <i class="fas fa-redo"></i> Girar Direita
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="flipImage('horizontal')">
+                                    <i class="fas fa-arrows-alt-h"></i> Espelhar H
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="flipImage('vertical')">
+                                    <i class="fas fa-arrows-alt-v"></i> Espelhar V
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetImage()">
+                                    <i class="fas fa-sync"></i> Resetar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tamanho da Imagem</label>
+                            <select id="background-size">
+                                <option value="cover">Cobrir (Cover)</option>
+                                <option value="contain">Conter (Contain)</option>
+                                <option value="auto">Automático</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Posição da Imagem</label>
+                            <select id="background-position">
+                                <option value="center">Centro</option>
+                                <option value="top">Topo</option>
+                                <option value="bottom">Fundo</option>
+                                <option value="left">Esquerda</option>
+                                <option value="right">Direita</option>
+                                <option value="top left">Topo Esquerda</option>
+                                <option value="top right">Topo Direita</option>
+                                <option value="bottom left">Fundo Esquerda</option>
+                                <option value="bottom right">Fundo Direita</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Repetição da Imagem</label>
+                            <select id="background-repeat">
+                                <option value="no-repeat">Sem Repetição</option>
+                                <option value="repeat">Repetir</option>
+                                <option value="repeat-x">Repetir Horizontal</option>
+                                <option value="repeat-y">Repetir Vertical</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Opacidade da Imagem: <span id="opacity-value">100%</span></label>
+                            <input type="range" id="background-opacity" min="0" max="100" value="100"
+                                style="width: 100%;"
+                                oninput="document.getElementById('opacity-value').textContent = this.value + '%'">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label>Cor Primária</label>
                     <input type="color" id="theme-primary" value="#C41E3A">
@@ -296,8 +764,104 @@
         </div>
     </div>
 
-    <script type="module" src="themes.js"></script>
-    <script type="module" src="admin.js"></script>
+    <!-- User Details Modal -->
+    <div class="modal" id="user-details-modal">
+        <div class="modal-content modal-large">
+            <button class="modal-close" onclick="closeUserDetailsModal()"><i class="fas fa-times"></i></button>
+            <div class="user-details-header">
+                <div class="user-banner" id="detail-banner"
+                    style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 120px;"></div>
+                <img id="detail-avatar" class="user-avatar-large" src="" alt=""
+                    style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid white; margin-top: -50px; margin-left: 24px;">
+            </div>
+            <div class="user-details-body" style="padding: 24px;">
+                <h2 id="detail-name" style="margin: 0;"></h2>
+                <p id="detail-email" style="color: var(--text-secondary); margin: 4px 0;"></p>
+                <div style="margin: 12px 0;">
+                    <span id="detail-role-badge" class="user-badge"></span>
+                    <span id="detail-status-badge" class="user-status-badge"></span>
+                </div>
+                <p id="detail-bio" style="margin: 16px 0; color: var(--text-secondary);"></p>
+                <div class="user-stats"
+                    style="display: flex; gap: 32px; margin: 24px 0; padding: 20px; background: var(--bg-hover); border-radius: 12px;">
+                    <div style="text-align: center;">
+                        <div id="detail-posts" style="font-size: 24px; font-weight: 700; color: var(--primary);">0</div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Posts</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div id="detail-connections" style="font-size: 24px; font-weight: 700; color: var(--primary);">0
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Conexões</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div id="detail-messages" style="font-size: 24px; font-weight: 700; color: var(--primary);">0
+                        </div>
+                        <div style="font-size: 12px; color: var(--text-secondary);">Mensagens</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="openEditUserModal()"><i class="fas fa-edit"></i>
+                        Editar</button>
+                    <button class="btn btn-secondary" onclick="openChatWithUser()"><i class="fas fa-comment"></i>
+                        Mensagem</button>
+                    <button class="btn btn-danger" onclick="confirmDeleteUser()"><i class="fas fa-trash"></i>
+                        Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div class="modal" id="user-edit-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditUserModal()"><i class="fas fa-times"></i></button>
+            <h2>Editar Usuário</h2>
+            <form id="user-edit-form">
+                <input type="hidden" id="edit-user-id">
+                <div class="form-group">
+                    <label>Nome</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="edit-email" required>
+                </div>
+                <div class="form-group">
+                    <label>Bio</label>
+                    <textarea id="edit-bio" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <select id="edit-role">
+                        <option value="user">Usuário</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="edit-suspended">
+                        Conta Suspensa
+                    </label>
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditUserModal()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+    <!-- Cropper.js JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
+    <script type="module" src="themes.js?v=4.0"></script>
+    <script src="admin.js?v=4.0"></script>
+    <script>
+        // Add timestamp to force fresh load
+        console.log('🔄 Admin Panel v4.0 loaded at:', new Date().toLocaleTimeString());
+    </script>
 </body>
 
 </html>

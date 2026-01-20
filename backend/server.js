@@ -39,11 +39,17 @@ const app = express();
 app.use(cors());
 
 // Permite que o servidor aceite dados JSON no corpo da requisição
-app.use(express.json());
-app.use(express.urlencoded({ extended: true })); // Garante parsing de formulários
+// Aumenta o limite para 50mb para suportar upload de imagens
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' })); // Garante parsing de formulários
 
 // Middleware para upload de arquivos
-app.use(fileUpload());
+// Configura limite de 50MB para uploads
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  abortOnLimit: true,
+  responseOnLimit: 'Arquivo muito grande. Tamanho máximo: 50MB'
+}));
 
 // Cria o servidor HTTP a partir do app Express
 const server = http.createServer(app);
@@ -81,6 +87,17 @@ if (!fs.existsSync(path.join(publicPath, 'index.html')) && fs.existsSync(path.jo
 } else {
   console.log(`Servindo arquivos do frontend da pasta: ${publicPath}`);
 }
+
+
+// Middleware para desabilitar cache em desenvolvimento
+app.use((req, res, next) => {
+  if (req.url.endsWith('.html') || req.url.endsWith('.js') || req.url.endsWith('.css')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
 
 app.use(express.static(staticDir));
 app.use('/uploads', express.static(uploadsDir)); // Serve os arquivos da pasta uploads na rota /uploads

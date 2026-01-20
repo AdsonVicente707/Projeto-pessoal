@@ -1,0 +1,101 @@
+<!-- User Details Modal -->
+<div class="modal" id="user-details-modal">
+    <div class="modal-content modal-large">
+        <button class="modal-close" onclick="closeUserDetailsModal()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="user-details-header">
+            <div class="user-banner" id="detail-banner"></div>
+            <div class="user-avatar-container">
+                <img id="detail-avatar" class="user-avatar-large" src="" alt="">
+            </div>
+        </div>
+
+        <div class="user-details-body">
+            <h2 id="detail-name"></h2>
+            <p class="user-email" id="detail-email"></p>
+            <span class="user-badge" id="detail-role-badge"></span>
+            <span class="user-status-badge" id="detail-status-badge"></span>
+
+            <p class="user-bio" id="detail-bio"></p>
+
+            <div class="user-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="detail-posts">0</div>
+                    <div class="stat-label">Posts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="detail-connections">0</div>
+                    <div class="stat-label">Conexões</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="detail-messages">0</div>
+                    <div class="stat-label">Mensagens</div>
+                </div>
+            </div>
+
+            <div class="user-actions">
+                <button class="btn btn-primary" onclick="openEditUserModal()">
+                    <i class="fas fa-edit"></i> Editar Perfil
+                </button>
+                <button class="btn btn-secondary" onclick="openChatWithUser()">
+                    <i class="fas fa-comment"></i> Enviar Mensagem
+                </button>
+                <button class="btn btn-danger" onclick="confirmDeleteUser()">
+                    <i class="fas fa-trash"></i> Excluir Usuário
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Edit Modal -->
+<div class="modal" id="user-edit-modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeEditUserModal()">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <h2>Editar Usuário</h2>
+
+        <form id="user-edit-form">
+            <input type="hidden" id="edit-user-id">
+
+            <div class="form-group">
+                <label>Nome</label>
+                <input type="text" id="edit-name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="edit-email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea id="edit-bio" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Role</label>
+                <select id="edit-role">
+                    <option value="user">Usuário</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="edit-suspended">
+                    Conta Suspensa
+                </label>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                <button type="button" class="btn btn-secondary" onclick="closeEditUserModal()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>

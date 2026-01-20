@@ -36,6 +36,50 @@ export function applyTheme(theme) {
         }
     }
 
+    // Apply background (color or image)
+    if (theme.background) {
+        if (theme.background.type === 'image' && theme.background.value) {
+            // Apply background image
+            const opacity = theme.background.opacity || 1;
+            const size = theme.background.size || 'cover';
+            const position = theme.background.position || 'center';
+            const repeat = theme.background.repeat || 'no-repeat';
+
+            // Create or update background overlay
+            let bgOverlay = document.getElementById('theme-background-overlay');
+            if (!bgOverlay) {
+                bgOverlay = document.createElement('div');
+                bgOverlay.id = 'theme-background-overlay';
+                bgOverlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: -1;
+                    pointer-events: none;
+                `;
+                document.body.prepend(bgOverlay);
+            }
+
+            bgOverlay.style.backgroundImage = `url(${theme.background.value})`;
+            bgOverlay.style.backgroundSize = size;
+            bgOverlay.style.backgroundPosition = position;
+            bgOverlay.style.backgroundRepeat = repeat;
+            bgOverlay.style.opacity = opacity;
+            bgOverlay.style.backgroundAttachment = 'fixed';
+
+            console.log(`🖼️ Imagem de fundo aplicada: ${theme.background.value}`);
+        } else if (theme.background.type === 'color' && theme.background.value) {
+            // Apply solid color background
+            document.body.style.backgroundColor = theme.background.value;
+
+            // Remove image overlay if exists
+            const bgOverlay = document.getElementById('theme-background-overlay');
+            if (bgOverlay) bgOverlay.remove();
+        }
+    }
+
     // Add theme class
     document.body.classList.add(`theme-${theme.slug}`);
 
@@ -74,6 +118,13 @@ export function removeTheme() {
     root.style.removeProperty('--secondary');
     root.style.removeProperty('--accent');
     root.style.removeProperty('--bg-body');
+
+    // Remove background overlay
+    const bgOverlay = document.getElementById('theme-background-overlay');
+    if (bgOverlay) bgOverlay.remove();
+
+    // Reset body background
+    document.body.style.backgroundColor = '';
 
     // Remove theme class
     document.body.classList.remove(`theme-${currentTheme.slug}`);
