@@ -544,6 +544,16 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -576,6 +586,7 @@
 
         <!-- Users Panel -->
         <div class="admin-panel" id="users-panel">
+<<<<<<< HEAD
             <!-- Toolbar -->
             <div class="users-toolbar">
                 <div class="search-container">
@@ -612,6 +623,109 @@
             <!-- Pagination -->
             <div class="pagination" id="users-pagination">
                 <!-- Pagination controls will be loaded here -->
+=======
+            <div style="margin-bottom: 24px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <div style="position: relative; max-width: 600px;">
+                        <i class="fas fa-search"
+                            style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+                        <input type="text" id="user-search" placeholder="Pesquisar usuários por nome ou email..." style="width: 100%; padding: 14px 16px 14px 44px; border: 2px solid var(--input-border); 
+                                   border-radius: var(--radius-md); background: var(--input-bg); 
+                                   color: var(--text-main); font-size: 15px; transition: all var(--transition-fast);"
+                            onfocus="this.style.borderColor='var(--primary)'"
+                            onblur="this.style.borderColor='var(--input-border)'">
+                    </div>
+                    <div style="margin-top: 8px; color: var(--text-secondary); font-size: 13px;">
+                        <i class="fas fa-info-circle"></i> Digite para filtrar usuários em tempo real
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div
+                style="background: var(--bg-surface); padding: 16px; border-radius: var(--radius-md); margin-bottom: 24px; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label
+                            style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary);">
+                            <i class="fas fa-filter"></i> Filtrar por Tipo
+                        </label>
+                        <select id="role-filter"
+                            style="width: 100%; padding: 10px 12px; border: 1px solid var(--input-border); 
+                                border-radius: var(--radius-md); background: var(--input-bg); color: var(--text-main); font-size: 14px;">
+                            <option value="">👥 Todos os Membros</option>
+                            <option value="admin">👑 Administradores</option>
+                            <option value="user">👤 Usuários</option>
+                        </select>
+                    </div>
+
+                    <div style="flex: 1; min-width: 200px;">
+                        <label
+                            style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary);">
+                            <i class="fas fa-sort"></i> Ordenar por
+                        </label>
+                        <select id="sort-by"
+                            style="width: 100%; padding: 10px 12px; border: 1px solid var(--input-border); 
+                                border-radius: var(--radius-md); background: var(--input-bg); color: var(--text-main); font-size: 14px;">
+                            <option value="createdAt-desc">📅 Mais Recentes</option>
+                            <option value="createdAt-asc">📅 Mais Antigos</option>
+                            <option value="name-asc">🔤 Nome (A-Z)</option>
+                            <option value="name-desc">🔤 Nome (Z-A)</option>
+                            <option value="email-asc">📧 Email (A-Z)</option>
+                        </select>
+                    </div>
+
+                    <div style="align-self: flex-end;">
+                        <button id="clear-filters" class="btn btn-secondary"
+                            style="display: flex; align-items: center; gap: 6px;">
+                            <i class="fas fa-times-circle"></i> Limpar Filtros
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users List -->
+            <div id="users-list">
+                <!-- Users will be loaded here -->
+>>>>>>> 592bee56a559331db5e82130600e052ae81b56a9
+            </div>
+
+            <!-- Pagination Controls -->
+            <div id="pagination-controls" style="display: none; background: var(--bg-surface); padding: 20px; border-radius: var(--radius-md); 
+                 margin-top: 24px; box-shadow: var(--shadow-sm);">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                    <button id="prev-page" class="btn btn-secondary"
+                        style="display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-chevron-left"></i> Anterior
+                    </button>
+
+                    <div style="text-align: center; color: var(--text-main); font-weight: 600;">
+                        <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 4px;">
+                            Página <span id="current-page">1</span> de <span id="total-pages">1</span>
+                        </div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            <i class="fas fa-users"></i> <span id="total-users">0</span> usuários no total
+                        </div>
+                    </div>
+
+                    <button id="next-page" class="btn btn-secondary"
+                        style="display: flex; align-items: center; gap: 6px;">
+                        Próximo <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div style="margin-top: 16px; text-align: center;">
+                    <label style="font-size: 13px; color: var(--text-secondary); margin-right: 8px;">Itens por
+                        página:</label>
+                    <select id="items-per-page"
+                        style="padding: 6px 12px; border: 1px solid var(--input-border); 
+                            border-radius: var(--radius-md); background: var(--input-bg); color: var(--text-main); font-size: 13px;">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
             </div>
         </div>
 
