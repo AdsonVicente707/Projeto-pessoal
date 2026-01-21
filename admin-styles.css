@@ -300,3 +300,75 @@ body.dark-mode .admin-tab:hover {
         transform: translateY(0);
     }
 }
+
+/* Modal Styles */
+.modal {
+    display: none !important;
+}
+
+.modal.active {
+    display: flex !important;
+}
+
+.user-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.user-badge.admin {
+    background: var(--primary-color);
+    color: white;
+}
+
+.user-badge.user {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.user-status-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.user-status-badge.active {
+    background: #4caf50;
+    color: white;
+}
+
+.user-status-badge.suspended {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-icon {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.user-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.user-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}

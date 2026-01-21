@@ -23,3 +23,7 @@ export function handleApiError(response) {
     }
     return response;
 }
+
+// Make API_URL and getAuthHeaders available globally for non-module scripts
+window.API_URL = API_URL;
+window.getAuthHeaders = getAuthHeaders;

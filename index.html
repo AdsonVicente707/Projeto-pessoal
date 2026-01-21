@@ -459,6 +459,131 @@
       </div>
     </div>
 
+    <!-- User Details Modal -->
+    <div class="modal" id="user-details-modal"
+      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;">
+      <div class="modal-content modal-large"
+        style="background: var(--bg-surface); padding: 32px; border-radius: 12px; max-width: 600px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+        <button class="modal-close" onclick="closeUserDetailsModal()"
+          style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <div class="user-details-header">
+          <div class="user-banner" id="detail-banner"
+            style="background: linear-gradient(135deg, var(--primary), var(--secondary)); height: 120px; border-radius: 8px; margin-bottom: -50px;">
+          </div>
+          <div class="user-avatar-container" style="text-align: center; margin-bottom: 20px;">
+            <img id="detail-avatar" class="user-avatar-large" src="" alt=""
+              style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-surface); margin-top: 50px;">
+          </div>
+        </div>
+
+        <div class="user-details-body" style="text-align: center;">
+          <h2 id="detail-name" style="margin: 10px 0;"></h2>
+          <p class="user-email" id="detail-email" style="color: var(--text-secondary); margin: 5px 0;"></p>
+          <div style="display: flex; gap: 8px; justify-content: center; margin: 15px 0;">
+            <span class="user-badge" id="detail-role-badge"></span>
+            <span class="user-status-badge" id="detail-status-badge"></span>
+          </div>
+
+          <p class="user-bio" id="detail-bio" style="color: var(--text-secondary); margin: 20px 0;"></p>
+
+          <div class="user-stats"
+            style="display: flex; gap: 32px; justify-content: center; margin: 24px 0; padding: 20px; background: var(--bg-hover); border-radius: 12px;">
+            <div class="stat-item" style="text-align: center;">
+              <div class="stat-number" id="detail-posts"
+                style="font-size: 24px; font-weight: 700; color: var(--primary);">0</div>
+              <div class="stat-label" style="font-size: 12px; color: var(--text-secondary);">Posts</div>
+            </div>
+            <div class="stat-item" style="text-align: center;">
+              <div class="stat-number" id="detail-connections"
+                style="font-size: 24px; font-weight: 700; color: var(--primary);">0</div>
+              <div class="stat-label" style="font-size: 12px; color: var(--text-secondary);">Conexões</div>
+            </div>
+            <div class="stat-item" style="text-align: center;">
+              <div class="stat-number" id="detail-messages"
+                style="font-size: 24px; font-weight: 700; color: var(--primary);">0</div>
+              <div class="stat-label" style="font-size: 12px; color: var(--text-secondary);">Mensagens</div>
+            </div>
+          </div>
+
+          <div class="user-actions" style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+            <button class="btn btn-primary" onclick="openEditUserModal()"
+              style="display: flex; align-items: center; gap: 6px;">
+              <i class="fas fa-edit"></i> Editar Perfil
+            </button>
+            <button class="btn btn-secondary" onclick="openChatWithUser()"
+              style="display: flex; align-items: center; gap: 6px;">
+              <i class="fas fa-comment"></i> Enviar Mensagem
+            </button>
+            <button class="btn btn-danger" onclick="confirmDeleteUser()"
+              style="display: flex; align-items: center; gap: 6px;">
+              <i class="fas fa-trash"></i> Excluir Usuário
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Edit Modal -->
+    <div class="modal" id="user-edit-modal"
+      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;">
+      <div class="modal-content"
+        style="background: var(--bg-surface); padding: 32px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative;">
+        <button class="modal-close" onclick="closeEditUserModal()"
+          style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); border: none; color: white; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+          <i class="fas fa-times"></i>
+        </button>
+
+        <h2>Editar Usuário</h2>
+
+        <form id="user-edit-form">
+          <input type="hidden" id="edit-user-id">
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nome</label>
+            <input type="text" id="edit-name" required
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Email</label>
+            <input type="email" id="edit-email" required
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Bio</label>
+            <textarea id="edit-bio" rows="3"
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);"></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Role</label>
+            <select id="edit-role"
+              style="width: 100%; padding: 12px; border: 1px solid var(--input-border); border-radius: 8px; background: var(--input-bg); color: var(--text-main);">
+              <option value="user">Usuário</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 20px;">
+            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="checkbox" id="edit-suspended">
+              Conta Suspensa
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar Alterações</button>
+            <button type="button" class="btn btn-secondary" onclick="closeEditUserModal()"
+              style="flex: 1;">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
   </main>
 
   <!-- Modal de Recorte de Imagem -->
@@ -681,6 +806,8 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
   <script src="components.js"></script>
+  <script src="admin-tabs.js"></script>
+  <script src="admin-users.js"></script>
   <script type="module" src="script.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </body>

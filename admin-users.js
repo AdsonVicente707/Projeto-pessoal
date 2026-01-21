@@ -33,7 +33,7 @@ async function loadUsers(page = 1) {
         renderPagination(data.totalPages, data.currentPage);
     } catch (error) {
         console.error('Error loading users:', error);
-        document.getElementById('users-grid').innerHTML = `
+        document.getElementById('admin-users-list').innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--error);">
                 ❌ Erro ao carregar usuários: ${error.message}
             </div>
@@ -43,7 +43,7 @@ async function loadUsers(page = 1) {
 
 // Render users grid
 function renderUsersGrid(users) {
-    const grid = document.getElementById('users-grid');
+    const grid = document.getElementById('admin-users-list');
 
     if (!users || users.length === 0) {
         grid.innerHTML = `
@@ -282,3 +282,4 @@ window.quickDeleteUser = quickDeleteUser;
 window.confirmDeleteUser = confirmDeleteUser;
 window.openChatWithUser = openChatWithUser;
 window.loadUsers = loadUsers;
+window.loadAdminUsers = loadUsers; // Alias for script.js compatibility
